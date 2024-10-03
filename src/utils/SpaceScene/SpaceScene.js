@@ -1,107 +1,40 @@
-import { createScene } from "./components/scene.js";
-import { createRenderer, createLabelRenderer } from "./core/renderer.js";
-import { createCamera } from "./components/camera.js";
-import { Loop } from "./core/loop.js";
-import { createCube } from "./components/cube.js";
 import { createLights } from "./components/lights.js";
-import { createControls } from "./core/controls.js";
 import { Resizer } from "./core/Resizer.js";
-import { Object3D } from "three";
 import {
   createBackgroundSphere,
   createSun,
   createOrbitingObject,
-  createRing,
 } from "./components/objects.js";
 
-import { planets_const, J2000 } from "@/utils/SpaceScene/utils/smorrery_const.js";
+import { planets_const } from "@/utils/SpaceScene/utils/smorrery_const.js";
+import { EmptyScene } from "./EmptyScene.js";
 
-let scene;
-let camera;
-let renderer;
-let labelRender;
-
-let loop;
-let currentDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
-let timeDirection = 1
-let timeScale = 1
-
-let container_width = window.innerWidth;
-let container_height = window.innerHeight;
-
-let smallBodies = [];
-let orbitingObjects = [];
-
-class SpaceScene {
+class SpaceScene extends EmptyScene {
   constructor(container) {
-    container_width = window.innerWidth;
-    container_height = window.innerHeight;
-
-    // 初始建構
-    scene = createScene();
-    renderer = createRenderer(container_width, container_height);
-    labelRender = createLabelRenderer(container_width, container_height);
-    camera = createCamera(container_width, container_height);
-    loop = new Loop(camera, scene, renderer, timeScale, currentDate, timeDirection);
-
-    // 添加畫布
-    container.append(renderer.domElement);
-    container.append(labelRender.domElement);
-
-    // 畫面控制器
-    const controls = createControls(camera, labelRender.domElement);
-    loop.updatables.push(controls);
+    super(container);
 
     const { ambientLight, sunLight } = createLights();
     // 背景
     const backgroundSphere = createBackgroundSphere();
-    scene.add(ambientLight, backgroundSphere);
-
+    this.scene.add(ambientLight, backgroundSphere);
     // 物件
     const sun = createSun();
 
+    this.smallBodies = [];
     // 行星
-    orbitingObjects = [...planets_const, ...smallBodies];
-    orbitingObjects.forEach((obj) => {
+    this.orbitingObjects = [...planets_const, ...this.smallBodies];
+    this.orbitingObjects.forEach((obj) => {
       obj.container = createOrbitingObject(obj);
-      loop.updatables.push(obj.container)
-      scene.add(obj.container);
+      this.loop.updatables.push(obj.container);
+      this.scene.add(obj.container);
     });
-    console.log(orbitingObjects);
+    console.log(this.orbitingObjects);
 
-    scene.add(sun);
-    scene.add(ambientLight);
-    scene.add(sunLight);
+    this.scene.add(sun);
+    this.scene.add(ambientLight);
+    this.scene.add(sunLight);
 
-    const resizer = new Resizer(container, camera, renderer);
-  }
-
-  setTimeDirect(direct = 1) {
-    loop.setTimeDirect(direct)
-
-    // 清空路徑
-    orbitingObjects.forEach((obj) => {
-      obj.trace = []
-    })
-
-  }
-
-  clearOrbitingTrace() {
-    orbitingObjects.forEach((obj) => {
-      obj.trace = []
-    })
-  }
-
-  render() {
-    // draw a single frame
-    renderer.render(scene, camera);
-  }
-  start() {
-    loop.start();
-  }
-
-  stop() {
-    loop.stop();
+    const resizer = new Resizer(container, this.camera, this.renderer);
   }
 }
 
