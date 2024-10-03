@@ -64,7 +64,7 @@ onMounted(() => {
 #target {
   #info {
     position: absolute;
-    top: 5%;
+    top: 10%;
     width: 100%;
     text-align: center;
     color: white;
@@ -75,7 +75,7 @@ onMounted(() => {
   #timeControl {
     position: absolute;
     left: 50%;
-    bottom: 10%;
+    bottom: 13%;
     transform: translateX(-50%);
     background: rgba(205, 140, 140, 0.7);
     padding: 10px;
