@@ -1,10 +1,12 @@
-// import { Clock } from "three";
-// import { MAX_DATE, MAX_DATE } from "@/utils/SpaceScene/utils/smorrery_const.js";
-import { calculateJulianDateSinceJ2000 } from "@/utils/SpaceScene/utils/calculator.js";
+import { Clock } from "three";
+import { RENDER_TIMES } from "@/utils/SpaceScene/utils/smorrery_const.js";
+import { calculateJulianDateSinceJ2000} from "@/utils/SpaceScene/utils/calculator.js";
 // const clock = new Clock();
 const MIN_DATE = new Date(1900, 0, 1);
 const MAX_DATE = new Date(2100, 11, 31);
 
+let fps_timer = 0
+const clock = new Clock();
 
 class Loop {
   constructor(camera, scene, renderer, timeScale, currentDate, timeDirection) {
@@ -22,25 +24,34 @@ class Loop {
       // tell every animated object to tick forward one frame
       this.tick();
 
+      // Frames 控制
+      let delta_times = clock.getDelta();
+      fps_timer = fps_timer + delta_times
+      
       // render a frame
-      this.renderer.render(this.scene, this.camera);
+      if(fps_timer > RENDER_TIMES) {
+        this.renderer.render(this.scene, this.camera);
+        fps_timer = 0
+      }
     });
   }
 
+  setTimeDirect(direct){
+    if(direct === 1) {
+      this.timeDirection = 1
+    }else{
+      this.timeDirection = 0
+    }
+  }
+
   stop() {
+    fps_timer = 0
     this.renderer.setAnimationLoop(null);
   }
 
   tick() {
-    // only call the getDelta function once per frame!
-    // const delta = clock.getDelta();
-
-    // console.log(
-    //   `The last frame rendered in ${delta * 1000} milliseconds`,
-    // );
-    
     const oneFrameInMilliseconds = this.timeScale * 24 * 60 * 60 * 1000;
-    if (this.timeDirection > 0) {
+    if (this.timeDirection >= 1) {
       this.currentDate.setTime(this.currentDate.getTime() + oneFrameInMilliseconds);
     } else {
       this.currentDate.setTime(this.currentDate.getTime() - oneFrameInMilliseconds);

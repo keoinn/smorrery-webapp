@@ -34,6 +34,9 @@ export const MAX_TRACE_STEPS = 1000
 export const radiusScale = 0.5;
 export const spaceScale = 20;
 
+export const MAX_FPS = 45
+export const RENDER_TIMES = 1/ MAX_FPS
+
 export const SUN_INFO = {
   name: "Sun",
   radius: 9,

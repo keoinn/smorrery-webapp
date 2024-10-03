@@ -76,6 +76,22 @@ class SpaceScene {
     const resizer = new Resizer(container, camera, renderer);
   }
 
+  setTimeDirect(direct = 1) {
+    loop.setTimeDirect(direct)
+
+    // 清空路徑
+    orbitingObjects.forEach((obj) => {
+      obj.trace = []
+    })
+
+  }
+
+  clearOrbitingTrace() {
+    orbitingObjects.forEach((obj) => {
+      obj.trace = []
+    })
+  }
+
   render() {
     // draw a single frame
     renderer.render(scene, camera);
