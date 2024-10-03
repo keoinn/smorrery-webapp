@@ -39,7 +39,7 @@ jobs:
       - name: Create env file
         uses: SpicyPizza/create-envfile@v2.0
         with:
-          envkey_VITE_DEPLOY_URL: smorrery-webapp-deploy
+          envkey_VITE_DEPLOY_URL: smorrery-webapp
           file_name: .env
       - run: npm run build
       - name: Deploy
