@@ -121,6 +121,7 @@ function createOrbitingObject(obj) {
 
   // 起始位置
   obj.T = getOrbitalPeroid(obj.a);
+  obj.isTrace = false
   obj.trace = [];
   obj.traceLine = createTraceLine(obj)
   const _M = updateMeanAnomaly(obj.T, obj.ma, 0);
@@ -150,16 +151,20 @@ function createOrbitingObject(obj) {
 
     // 軌跡
     // Add a segment to the trace
-    obj.trace.push(orbit_update_pos);
-    if(obj.trace.length >= MAX_TRACE_STEPS){
-      obj.trace.shift()
+    if(obj.isTrace) {
+      obj.trace.push(orbit_update_pos);
+      if(obj.trace.length >= MAX_TRACE_STEPS){
+        obj.trace.shift()
+      }
     }
+    
 
     // 顯示
     scene.remove(obj.traceLine)
-    obj.traceLine = createTraceLine(obj)
-    scene.add(obj.traceLine)
-    
+    if(obj.trace.length > 0) {
+      obj.traceLine = createTraceLine(obj)
+      scene.add(obj.traceLine)
+    }
   };
 
   return orbit_container;

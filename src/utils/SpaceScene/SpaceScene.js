@@ -35,7 +35,27 @@ class SpaceScene extends EmptyScene {
     this.scene.add(sunLight);
 
     const resizer = new Resizer(container, this.camera, this.renderer);
+
   }
+
+  clearTrace() {
+    this.orbitingObjects.forEach(obj => {
+      obj.trace = []
+    })
+  }
+
+  // 天體軌跡記錄啟動
+  set OrbitingRecordTrace (flag) {
+    const st = (flag === true)? true : false;
+    this.orbitingObjects.forEach(obj => {
+      console.log(flag, st, obj.isTrace)
+      obj.isTrace = st
+      if(!st) {
+        obj.trace = []
+      }
+    })
+  }
+
 }
 
 export { SpaceScene };

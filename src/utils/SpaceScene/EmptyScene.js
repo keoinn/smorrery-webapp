@@ -4,29 +4,28 @@ import { createCamera } from "./components/camera.js";
 import { Loop } from "./core/loop.js";
 import { createControls } from "./core/controls.js";
 
-let timeDirection = 1;
-let timeScale = 1;
-let container_width = window.innerWidth;
-let container_height = window.innerHeight;
-
 class EmptyScene {
   constructor(container) {
-    container_width = window.innerWidth;
-    container_height = window.innerHeight;
+    this.container_width = window.innerWidth;
+    this.container_height = window.innerHeight;
 
     // 初始建構
+    this.timeDirection = 1; // 控制計算時間差
+    this.timeScale = 1; // 控制時間差倍率
+    this.isPlayed = 1; // 是否計算下一幀差異
+    
     this.scene = createScene();
-    this.renderer = createRenderer(container_width, container_height);
-    this.labelRender = createLabelRenderer(container_width, container_height);
-    this.camera = createCamera(container_width, container_height);
+    this.renderer = createRenderer(this.container_width, this.container_height);
+    this.labelRender = createLabelRenderer(this.container_width, this.container_height);
+    this.camera = createCamera(this.container_width, this.container_height);
     this.currentDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
     this.loop = new Loop(
       this.camera,
       this.scene,
       this.renderer,
-      timeScale,
+      this.timeScale,
       this.currentDate,
-      timeDirection
+      this.timeDirection,
     );
 
     // 添加畫布

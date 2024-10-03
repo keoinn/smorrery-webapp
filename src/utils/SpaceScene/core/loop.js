@@ -9,7 +9,7 @@ let fps_timer = 0
 const clock = new Clock();
 
 class Loop {
-  constructor(camera, scene, renderer, timeScale, currentDate, timeDirection) {
+  constructor(camera, scene, renderer, timeScale, currentDate, timeDirection, isPlayed) {
     this.camera = camera;
     this.scene = scene;
     this.renderer = renderer;
@@ -17,6 +17,7 @@ class Loop {
     this.timeScale = timeScale
     this.currentDate = currentDate;
     this.timeDirection = timeDirection;
+    this.isPlayed = isPlayed
   }
 
   start() {
@@ -36,7 +37,16 @@ class Loop {
     });
   }
 
-  setTimeDirect(direct){
+ 
+  set played(display_st) {
+    if(display_st === 1) {
+      this.isPlayed = 1
+    }else{
+      this.isPlayed = 0
+    }
+  }
+
+  set timeDirect(direct) {
     if(direct === 1) {
       this.timeDirection = 1
     }else{
@@ -50,24 +60,28 @@ class Loop {
   }
 
   tick() {
-    const oneFrameInMilliseconds = this.timeScale * 24 * 60 * 60 * 1000;
-    if (this.timeDirection >= 1) {
-      this.currentDate.setTime(this.currentDate.getTime() + oneFrameInMilliseconds);
-    } else {
-      this.currentDate.setTime(this.currentDate.getTime() - oneFrameInMilliseconds);
+    if (this.isPlayed) {
+      const oneFrameInMilliseconds = this.timeScale * 24 * 60 * 60 * 1000;
+      if (this.timeDirection === 1) {
+        this.currentDate.setTime(this.currentDate.getTime() + oneFrameInMilliseconds);
+      } else {
+        this.currentDate.setTime(this.currentDate.getTime() - oneFrameInMilliseconds);
+      }
+  
+      if (this.currentDate < MIN_DATE) {
+        this.currentDate = MIN_DATE;
+      } else if (this.currentDate > MAX_DATE) {
+        this.currentDate = MAX_DATE;
+      }  
+      console.log(this.timeDirection)
+      const delta = calculateJulianDateSinceJ2000(this.currentDate)
+
+      for (const object of this.updatables) {
+        object.tick(delta, this.scene);
+      }
     }
 
-    if (this.currentDate < MIN_DATE) {
-      this.currentDate = MIN_DATE;
-    } else if (this.currentDate > MAX_DATE) {
-      this.currentDate = MAX_DATE;
-    }
 
-    const delta = calculateJulianDateSinceJ2000(this.currentDate)
-
-    for (const object of this.updatables) {
-      object.tick(delta, this.scene);
-    }
   }
 }
 

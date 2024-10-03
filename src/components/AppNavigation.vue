@@ -1,11 +1,17 @@
+<script setup>
+import { ref, watch, onMounted } from "vue";
+import {useAppStore} from '@/stores/app.js'
+const appStore = useAppStore()
+const rail = ref(false);
+
+</script>
+
 <template>
   <v-navigation-drawer
-    v-model="drawer"
-    :rail="rail"
+    :rail="appStore.isOpenNav"
     permanent
     @click="rail = false"
   >
-
     <v-list density="compact" nav>
       <v-list-item
         prepend-icon="mdi-home-city"
@@ -25,9 +31,3 @@
     </v-list>
   </v-navigation-drawer>
 </template>
-
-<script setup>
-import { ref } from "vue";
-const drawer = ref(false);
-const rail = ref(false);
-</script>

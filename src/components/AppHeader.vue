@@ -1,24 +1,19 @@
 <script setup>
-// export default {
-//   data: () => ({
-//     user: {
-//       initials: "JD",
-//       fullName: "John Doe",
-//       email: "john.doe@doe.com",
-//     },
-//   }),
-// };
 import { reactive } from "vue";
 const user = reactive({
     initials: "JD",
     fullName: "John Doe",
     email: "john.doe@doe.com",
 })
+
+import {useAppStore} from '@/stores/app.js'
+const appStore = useAppStore()
+
 </script>
 
 <template>
   <v-app-bar class="px-1">
-      <v-app-bar-nav-icon icon="mdi-menu"></v-app-bar-nav-icon>
+      <v-app-bar-nav-icon icon="mdi-menu" @click="appStore.changeOpenNav()"></v-app-bar-nav-icon>
       <v-app-bar-title>Smorrery WebApp</v-app-bar-title>
     <!-- <v-text-field prepend-icon="mdi-magnify" single-line></v-text-field> -->
 
