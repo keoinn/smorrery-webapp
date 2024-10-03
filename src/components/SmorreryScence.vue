@@ -4,7 +4,7 @@ import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
 const target = ref();
 
 const control_btn_icon = ref('mdi-pause')
-const control_st = ref(false)
+const control_st = ref(true)
 
 const forward_btn_icon = ref('mdi-skip-backward') //mdi mdi-fast-backward
 const forward_st = ref(true)
