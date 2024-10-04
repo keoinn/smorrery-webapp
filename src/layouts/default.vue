@@ -4,6 +4,7 @@
 <template>
   <v-app>
     <v-main>
+      <AppHeaderLogo />
       <AppHeader />
       <!-- <AppNavigation /> -->
       <router-view />

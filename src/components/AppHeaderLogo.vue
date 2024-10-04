@@ -1,2 +1,52 @@
+<script setup>
+import logo_img from '@/assets/gaiaLogo.svg'
+</script>
+
 <template>
-    </template>
+  <div class="nav-logo">
+    <div class="group">
+      <div class="text-wrapper">Gaia Room</div>
+      <img class="vector" alt="Vector" :src="logo_img" />
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
+.nav-logo {
+//   box-shadow: 3px 3px 10px 0px rgba(0, 0, 0, 0.5);
+  height: 50px;
+  width: 200px;
+  z-index: 200;
+
+  .group {
+    height: 54px;
+    position: relative;
+    top: 25px;
+    left: 50px;
+    width: 200px;
+    z-index: 200;
+
+    .text-wrapper {
+    color: #ffffff;
+    font-family: "Gilroy-ExtraBold", Helvetica;
+    font-size: 20px;
+    font-weight: 800;
+    left: 50px;
+    letter-spacing: 2px;
+    line-height: normal;
+    position: absolute;
+    top: 0;
+  }
+
+  .vector {
+    height: 50px;
+    left: 0;
+    position: absolute;
+    top: 4px;
+    width: 50px;
+  }
+  }
+
+
+}
+</style>
