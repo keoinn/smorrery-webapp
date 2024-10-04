@@ -5,7 +5,7 @@
   <v-app>
     <v-main>
       <AppHeader />
-      <AppNavigation />
+      <!-- <AppNavigation /> -->
       <router-view />
     </v-main>
 
