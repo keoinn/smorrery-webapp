@@ -48,7 +48,6 @@ class SpaceScene extends EmptyScene {
   set OrbitingRecordTrace (flag) {
     const st = (flag === true)? true : false;
     this.orbitingObjects.forEach(obj => {
-      console.log(flag, st, obj.isTrace)
       obj.isTrace = st
       if(!st) {
         obj.trace = []

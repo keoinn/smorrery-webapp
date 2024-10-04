@@ -1,4 +1,5 @@
 import { Clock } from "three";
+import { ref } from 'vue';
 import { RENDER_TIMES } from "@/utils/SpaceScene/utils/smorrery_const.js";
 import { calculateJulianDateSinceJ2000} from "@/utils/SpaceScene/utils/calculator.js";
 // const clock = new Clock();
@@ -18,6 +19,10 @@ class Loop {
     this.currentDate = currentDate;
     this.timeDirection = timeDirection;
     this.isPlayed = isPlayed
+
+    // Reactivity API for watch from Outer
+    this.currentDate_ref = ref('')
+    this.currentDate_ref.value = currentDate.getTime();
   }
 
   start() {
@@ -37,6 +42,18 @@ class Loop {
     });
   }
 
+  // 改變日期
+  set shiftDate(val) {
+    this.currentDate = new Date(val)
+    this.currentDate_ref.value = this.currentDate.getTime();
+    const delta = calculateJulianDateSinceJ2000(this.currentDate)
+    for (const object of this.updatables) {
+      object.tick(delta, this.scene);
+      object.trace = []
+    }
+
+  }
+
  
   set played(display_st) {
     if(display_st === 1) {
@@ -52,6 +69,10 @@ class Loop {
     }else{
       this.timeDirection = 0
     }
+  }
+
+  set timeScaleRate(rate) {
+    this.timeScale = rate
   }
 
   stop() {
@@ -73,8 +94,10 @@ class Loop {
       } else if (this.currentDate > MAX_DATE) {
         this.currentDate = MAX_DATE;
       }  
-      console.log(this.timeDirection)
       const delta = calculateJulianDateSinceJ2000(this.currentDate)
+
+      // Reactivity API for watch from Outer
+      this.currentDate_ref.value = this.currentDate.getTime()
 
       for (const object of this.updatables) {
         object.tick(delta, this.scene);
