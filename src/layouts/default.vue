@@ -1,4 +1,5 @@
 <script setup>
+import font_url from '@/assets/fonts/Gilroy-ExtraBold.otf'
 </script>
 
 <template>
@@ -14,4 +15,9 @@
   </v-app>
 </template>
 
-
+<style>
+@font-face {
+  font-family: 'Gilroy';
+  src: v-bind("`url('${font_url}')`");
+}
+</style>
