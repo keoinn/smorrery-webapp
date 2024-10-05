@@ -2,7 +2,13 @@
 import { ref, onMounted, watch, computed, reactive} from "vue";
 import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
 import { fetchCadApi, fetchSbdbApi } from '@/utils/APIRequests/apis/event.js';
+import { parseSmallBodiesData } from "@/utils/APIRequests/preprocessor.js";
 import backgroundmusic from '@/assets/backgroundmusic.wav'
+
+const NEO_AMOUNT = 10;
+const CAD_MIN_DATE = '2024-01-01';
+const CAD_MAX_DATE = '2025-01-01';
+const CAD_MAX_DIST = '0.05';  
 
 let space_scene;
 const target = ref();
@@ -15,7 +21,7 @@ const control_st = ref(false);
 const forward_st = ref(true);
 
 // 軌跡
-const isTrace = ref(false);
+const isTraced = ref(false);
 
 // Speed
 const timeSpeed = ref(1.0);
@@ -24,13 +30,12 @@ const timeSpeed = ref(1.0);
 const currentDate = ref(946728000000)
 
 // Data Fetch
-const neoData = ref([]);  // from SBDB API response
-const cadData = ref([]);  // from CAD API response
+let neoData;  // from SBDB API response
+let cadData;  // from CAD API response
 
 // 背景音樂播放
 const backgroundMusic = ref(false);
-const isMuted = ref(false);
-
+const isMuted = ref(true);
 
 
 // 畫布啟動關閉 -> 畫面渲染
@@ -65,22 +70,22 @@ const forwardControlChange = () => {
   space_scene.clearTrace();
 };
 
-const changeIsTraceStatus = () => {
-  isTrace.value = !isTrace.value;
-  space_scene.OrbitingRecordTrace = isTrace.value;
-  console.log(`Trace status = ${isTrace.value}`); // TEST: log the new trace status value
+const changeisTracedStatus = () => {
+  isTraced.value = !isTraced.value;
+  space_scene.OrbitingRecordTrace = isTraced.value;
+  console.log(`Trace status = ${isTraced.value}`); // <--- TEST
 };
 
 const dateShift = (val) => {
   space_scene.loop.shiftDate = val
-  isTrace.value = false
-  space_scene.OrbitingRecordTrace = isTrace.value;
+  isTraced.value = false
+  space_scene.OrbitingRecordTrace = isTraced.value;
   space_scene.clearTrace();
   
 }
 
 watch(timeSpeed, (val) => {
-  console.log(`Speed = ${val}x`); // TEST: log the new speed value
+  // console.log(`Speed = ${val}x`); // TEST: log the new speed value
   space_scene.loop.timeScaleRate = val;
 });
 
@@ -114,17 +119,20 @@ onMounted(() => {
 onMounted(async () => {
   try {
     // Use fetchSbdbApi to fetch NEO data
-    const sbdbResponse = await fetchSbdbApi(200); // Get 200
-    neoData.value = sbdbResponse.data;
-    console.log('Fetched NEO data:', neoData.value.data.length);
+    const sbdbResponse = await fetchSbdbApi(NEO_AMOUNT); // Get 200
+    console.log('Fetched data:', sbdbResponse.data.data.length, 'NEOs.');
+    neoData = sbdbResponse.data; 
 
-    // Use fetchCadApi to fetch Close-Aproach Data
-    const date_min = '2024-01-01';
-    const date_max = '2025-01-01';
-    const dist_max = '0.05';        // in AU
-    const cadResponse = await fetchCadApi(date_min, date_max, dist_max);
-    cadData.value = cadResponse.data;
-    console.log('Fetched CAD data:', cadData.value.data.length);
+    let smallBodiesData = parseSmallBodiesData(neoData);
+    console.log(smallBodiesData);
+    space_scene.generateObjects(smallBodiesData);
+
+    // Use fetchCadApi to fetch Close-Aproach Data      // in AU
+    const cadResponse = await fetchCadApi(CAD_MIN_DATE, CAD_MAX_DATE, CAD_MAX_DIST);
+    console.log('Fetched data:', cadResponse.data.data.length, 'close-approach events.');
+    cadData = cadResponse.data;
+
+    console.log(neoData);
 
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -136,6 +144,7 @@ onMounted(async () => {
 
   backgroundMusic.value.muted = isMuted.value;
 });
+
 
 
 </script>
@@ -170,8 +179,8 @@ onMounted(async () => {
       <v-btn
         class="video-btn text-none"
         :disabled="!scene_st || !control_st"
-        :prepend-icon="isTrace === true ? `mdi-stop-circle` : `mdi-record`"
-        @click="changeIsTraceStatus"
+        :prepend-icon="isTraced === true ? `mdi-stop-circle` : `mdi-record`"
+        @click="changeisTracedStatus"
         text="Trace"
         size="small"
       />

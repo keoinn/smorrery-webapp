@@ -43,7 +43,7 @@ export const useAppStore = defineStore(
 //               // Return valid celestial body data
 //               return {
 //                   name: extractedName,
-//                   orbitalElements: {
+//                   orbitalParameters: {
 //                       a: a,        // Semi-major axis (a), in AU
 //                       e: e,        // Eccentricity (e)
 //                       i: i,        // Inclination (i), in degrees
@@ -55,8 +55,7 @@ export const useAppStore = defineStore(
 //                   color: 0xffff00, // Custom color for small bodies
 //                   opacity: 0.3,    // Transparency level
 //                   radius: 0.2,     // Custom radius
-//                   category: 'small body',
-//                   subclass: 'NEO'  // Subclass for Near-Earth Objects (NEO)
+//                   category: 'NEO',
 //               };
 //           }).filter(Boolean);      // Filter out any null entries
 

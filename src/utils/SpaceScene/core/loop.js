@@ -96,7 +96,7 @@ class Loop {
       }  
       const delta = calcYearSinceJ2000(this.currentDate)
 
-      // Reactivity API for watch from Outer
+      // Reactivity API for watch from outside
       this.currentDate_ref.value = this.currentDate.getTime()
 
       for (const object of this.updatables) {
