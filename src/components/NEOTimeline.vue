@@ -32,7 +32,18 @@
 
       <div class="event-details d-flex flex-wrap" style="flex: 3; margin-left: 20px;">
         <div class="event-card" style="flex: 1; margin-right: 20px;">
-   
+          <h2>Distance Comparison</h2>
+            <v-container class="d-flex flex-wrap">
+              <v-row>
+                <canvas ref="comparisonCanvas1"></canvas>
+              </v-row>
+              <v-row>
+                <canvas ref="comparisonCanvas2"></canvas>
+              </v-row>
+              <v-row>
+                <canvas ref="comparisonCanvas3"></canvas>
+              </v-row>
+            </v-container>
         </div>
         <div class="event-card" style="flex: 2;">
           <div id="event-content">
@@ -66,7 +77,7 @@
             </table>
             <p v-else>No data for this event.</p>
           </div>
-          <div id="event-links">
+          <div v-if="selectedEvent?.links && selectedEvent?.links.length > 0" id="event-links">
             <button
               v-for="link in selectedEvent.links"
               :key="link.text"
@@ -134,6 +145,11 @@ const timelineOffset = ref(0);
 const isDragging = ref(false); 
 let startX = 0; // 滑鼠起始位置
 let initialTimelineOffset = 0; 
+const comparisonCanvas1 = ref(null);
+const comparisonCanvas2 = ref(null);
+const comparisonCanvas3 = ref(null);
+const comparisonCanvas4 = ref(null);
+
 
 
 // 根據搜尋字串動態過濾 timelineDays 資料
@@ -305,6 +321,8 @@ const selectEvent = (item) => {
   const event = neoObjects.value.find((selectedEvent) => selectedEvent.cd === item.name.split(' for ')[1]);
   if (event) {
     selectedEvent.value = event;
+    drawEventComparison(event.dist_min, event.dist_max);
+    console.log('Selected event:', selectedEvent.value);
   }
 };
 
@@ -424,6 +442,65 @@ let days = 0;
 
     // 返回格式化字符串
     return `${days} d ${hours} h ${minutes} m`;
+};
+
+const drawEventComparison = (distance1, distance2) => {
+  const canvas1 = comparisonCanvas1.value;
+  const ctx1 = canvas1.getContext('2d');
+  drawComparisonLine(ctx1, 'Earth to Moon', 0.00257*1000);
+
+  const canvas2 = comparisonCanvas2.value;
+  const ctx2 = canvas2.getContext('2d');
+  drawComparisonLine(ctx2, 'Earth to NEO (min-max)', distance1*1000, distance2*1000);
+
+  const canvas3 = comparisonCanvas3.value;
+  const ctx3 = canvas3.getContext('2d');
+  // drawComparisonLine(ctx3, 'Compare with 1000 km', 1000 / 149597870.7*1000);
+  drawComparisonLine(ctx3, 'Earth to Sun (1AU)', 1*1000);
+}
+
+const drawComparisonLine = (ctx, label, ...lengths) => {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // 清除画布
+  ctx.font = '16px Arial';
+
+  // 设置绘图的初始位置
+  const startX = 50;
+  const startY = 40;
+  const offsetY = 20;
+
+  if (lengths.length === 1) {
+    const length1 = lengths[0];
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(startX + length1, startY);
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillText(label, startX, startY - 10);
+
+  } else if (lengths.length === 2) {
+    const length1 = lengths[0];
+    const length2 = lengths[1];
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(startX + length1, startY);
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillText(label, startX, startY - 10);
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY + offsetY);
+    ctx.lineTo(startX + length2, startY + offsetY);
+    ctx.strokeStyle = 'red'; // 为了区分，改变颜色
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+  } else {
+    console.error('Length must have either one or two values');
+  }
 };
 
 
