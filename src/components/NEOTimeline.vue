@@ -54,7 +54,7 @@
                     <th>{{ field }}</th>
                     <td>
                       <span v-if="field === 't_sigma_f'">
-                          {{ (selectedEvent[field]) }} <!-- 调用 formatTime 方法 -->
+                          {{ formatFieldTime(selectedEvent[field]) }} <!-- 调用 formatTime 方法 -->
                       </span>
                       <span v-else>
                           {{ parseFloat(selectedEvent[field]).toFixed(6) }}
@@ -65,6 +65,16 @@
                 </tbody>
             </table>
             <p v-else>No data for this event.</p>
+          </div>
+          <div id="event-links">
+            <button
+              v-for="link in selectedEvent.links"
+              :key="link.text"
+              class="link-button"
+              @click="openLink(link.url)"
+            >
+              {{ link.text }}
+            </button>
           </div>
         </div>
       </div>
@@ -294,7 +304,7 @@ const selectEvent = (item) => {
   selectedEvent.value = item.id;
   const event = neoObjects.value.find((selectedEvent) => selectedEvent.cd === item.name.split(' for ')[1]);
   if (event) {
-    neo.value = event;
+    selectedEvent.value = event;
   }
 };
 
