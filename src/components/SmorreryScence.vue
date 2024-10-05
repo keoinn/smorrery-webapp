@@ -176,6 +176,8 @@ onMounted(() => {
 
 <style lang="scss">
 #target {
+  // remove 50px from AppHeaderLogo
+  height: calc(100vh - 50px);
   #info {
     position: absolute;
     top: 10%;
