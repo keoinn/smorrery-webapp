@@ -27,12 +27,12 @@ import {
 } from "@/utils/SpaceScene/utils/smorrery_const.js";
 import {
   updateMeanAnomaly,
-  solveKeplerEquation,
-  getTrueAnomaly,
-  getRadualDistance,
-  getCoordinateOrbitalPlane,
-  getOrbitalPeroid,
-  updateOrbitaPostion,
+  calcEccentricAnomaly,
+  calcTrueAnomaly,
+  calcRadialDistance,
+  polarToCartesian3D,
+  calcOrbitalPeroid,
+  calcPosition,
 } from "@/utils/SpaceScene/utils/calculator.js";
 
 function createMaterial(texture_img, type = "planets") {
@@ -120,50 +120,42 @@ function createOrbitingObject(obj) {
   }
 
   // 起始位置
-  obj.T = getOrbitalPeroid(obj.a);
-  obj.isTrace = false
+  obj.T = calcOrbitalPeroid(obj.a);
+  obj.isTrace = false;
   obj.trace = [];
-  obj.traceLine = createTraceLine(obj)
-  const _M = updateMeanAnomaly(obj.T, obj.ma, 0);
-  const _E = solveKeplerEquation(obj.e, _M);
-  const _nu = getTrueAnomaly(obj.e, _E);
-  const _r = getRadualDistance(spaceScale, obj.a, obj.e, _nu);
-  const [_x, _y, _z] = getCoordinateOrbitalPlane(_r, _nu);
-  const orbit_pos = new Vector3(_x, _y, _z);
-  /* Test for Random Postion 
-  const orbit_pos = new Vector3(
-    Math.floor(Math.random() * 51),
-    0,
-    Math.floor(Math.random() * 51),
-    ) 
-  */
-  orbit_container.position.copy(orbit_pos);
-  /* Test for SATURN Postion 
-  if (obj.name.toUpperCase() === "SATURN") {
-    orbit_container.position.copy(new Vector3(10, 0, 23));
-  }*/
+  obj.traceLine = createTraceLine(obj);
 
-  // 運動 frame 計算
+  /* BEING CONST SITE */
+  const { a, e, i, om, varpi, ma } = obj;
+  const orbitalElements = { a, e, i, om, varpi, ma };
+  const period = obj.T;
+  // Goals: 
+  // const {radius, period, orbitalElements, container, label} = object;
+  // const {a, e, i, om, varpi, ma} = orbitalElements;
+  /* END CONST SITE */
+
+  // Place the container at its initial position
+  const initPosition = calcPosition(0, orbitalElements, spaceScale);
+  orbit_container.position.copy(initPosition);
+
+  // Update the container's position for the next frame
   orbit_container.tick = (delta, scene) => {
-    const [_x, _y, _z] = updateOrbitaPostion(getOrbitalPeroid(obj.a), obj.ma, obj.e, obj.a ,spaceScale, delta)
-    const orbit_update_pos = new Vector3(_x, _y, _z);
-    orbit_container.position.copy(orbit_update_pos)
+    const newPosition = calcPosition(delta, orbitalElements, spaceScale);
+    orbit_container.position.copy(newPosition);
 
-    // 軌跡
-    // Add a segment to the trace
-    if(obj.isTrace) {
-      obj.trace.push(orbit_update_pos);
-      if(obj.trace.length >= MAX_TRACE_STEPS){
-        obj.trace.shift()
+    // Add a new position to the trace if the object has tracing enabled
+    if ( obj.isTrace ) {
+      obj.trace.push(newPosition); // Add the current position to the trace
+      if ( obj.trace.length >= MAX_TRACE_STEPS ){
+        obj.trace.shift(); // Remove the oldest position to keep trace size fixed
       }
     }
     
-
-    // 顯示
-    scene.remove(obj.traceLine)
+    // Update the visual representation of the trace
+    scene.remove(obj.traceLine);
     if(obj.trace.length > 0) {
-      obj.traceLine = createTraceLine(obj)
-      scene.add(obj.traceLine)
+      obj.traceLine = createTraceLine(obj); // Create a new trace line based on updated positions
+      scene.add(obj.traceLine);  // Add the new trace line to the scene
     }
   };
 
