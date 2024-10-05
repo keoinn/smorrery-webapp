@@ -23,6 +23,30 @@ const tweakpaneState = ref({
   selectedBodies: ["Mercury"],
 });
 
+// 播放
+const control_st = ref(true);
+
+// Speed
+const timeSpeed = ref(1.0);
+
+// Control Bar Action
+const palyingStatuChange = () => {
+  control_st.value = !control_st.value;
+  if (control_st.value) {
+    education_scene.loop.played = 1;
+  } else {
+    education_scene.loop.played = 0;
+  }
+};
+
+watch(timeSpeed, (val) => {
+  education_scene.loop.timeScaleRate = val;
+});
+
+const showFixedSpeedVal = (val) => {
+  return parseFloat(val);
+};
+
 const onPaneCreated = (_pane) => {
   nextTick(() => {
     const container = document.querySelector(".tweakpane-container");
@@ -126,7 +150,6 @@ topicController.value.onTopicChange = (newTopic) => {
 
 //TODO:
 // 2. add topics to navbar
-// 3. adjust css to avoid overlapping
 // 5. user can adjust width of the article
 // 6. add time control at bottom
 // 7. select topic from defined property
@@ -159,7 +182,29 @@ onMounted(() => {
       ></component>
     </div>
     <div class="scene-panel">
-      <div id="target" ref="target"></div>
+      <div id="target" ref="target">
+        <div id="timeControl">
+          <v-btn
+            class="video-btn"
+            :icon="control_st === true ? `mdi-pause` : `mdi-play`"
+            @click="palyingStatuChange"
+            size="small"
+          />
+
+          <div class="speedControl">
+            <label for="speedSlider">Speed:</label>
+            <input
+              v-model="timeSpeed"
+              type="range"
+              id="speedSlider"
+              min="0.1"
+              max="10"
+              step="0.01"
+            />
+            <span id="speedValue">{{ showFixedSpeedVal(timeSpeed) }}x</span>
+          </div>
+        </div>
+      </div>
       <div class="tweakpane-container">
         <v-tweakpane
           class="p-4"
@@ -178,7 +223,7 @@ onMounted(() => {
 }
 
 .topic-panel {
-  width: 30%;
+  width: 20%;
   padding: 20px;
   overflow-y: auto;
   border-right: 1px solid #ccc;
@@ -186,7 +231,7 @@ onMounted(() => {
 }
 
 .scene-panel {
-  width: 70%;
+  width: 80%;
   position: relative;
 }
 
@@ -200,6 +245,36 @@ onMounted(() => {
   top: 80px;
   right: 10px;
   z-index: 10;
+}
+#timeControl {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  color: white;
+  font-family: Arial, sans-serif;
+  z-index: 1000;
+
+  .video-btn {
+    margin-left: 10px;
+  }
+
+  .speedControl {
+    display: flex;
+    align-items: center;
+    label {
+      padding-left: 30px;
+    }
+
+    input {
+      width: 100px;
+    }
+  }
 }
 
 /* 自定義 Tweakpane 樣式 */

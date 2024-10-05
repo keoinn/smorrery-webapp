@@ -1,4 +1,3 @@
-//TODO: add custom control pane
 export class EmptyTopic {
   constructor(title, contentComponent, multiSelect = false) {
     this.title = title;
