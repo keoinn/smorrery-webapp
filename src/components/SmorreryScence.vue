@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, computed, reactive} from "vue";
 import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
-import backgroundmusic from '@/assets/backgroundmusic.mp3'
+import backgroundmusic from '@/assets/backgroundmusic.wav'
 
 let space_scene;
 const target = ref();
