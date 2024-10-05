@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, computed, reactive} from "vue";
 import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
+import backgroundmusic from '@/assets/backgroundmusic.wav'
 
 let space_scene;
 const target = ref();
@@ -21,16 +22,21 @@ const timeSpeed = ref(1.0);
 //currentDate
 const currentDate = ref(946728000000)
 
+// 背景音樂播放
+const backgroundMusic = ref(false);
+const isMuted = ref(false);
 
 
 // 畫布啟動關閉 -> 畫面渲染
 const controlStatusScene = () => {
   scene_st.value = !scene_st.value;
+
   if (scene_st.value) {
     space_scene.start();
+    backgroundMusic.value.play();
   } else {
     space_scene.stop();
-  }
+  } 
 };
 
 // Control Bar Action
@@ -91,6 +97,11 @@ const showJDText = (val) => {
   return ((val / 86400000) + 2440587.5).toFixed(2);
 }
 
+const toggleMute = () => {
+  isMuted.value = !isMuted.value;
+  backgroundMusic.value.muted = isMuted.value;
+};
+
 onMounted(() => {
   const target_s = document.querySelector("#target");
   space_scene = new SpaceScene(target_s);
@@ -99,6 +110,7 @@ onMounted(() => {
     currentDate.value = val
   });
 
+  backgroundMusic.value.muted = isMuted.value;
 });
 </script>
 
@@ -170,6 +182,14 @@ onMounted(() => {
 
       <span class="info-text">{{ showDateString(currentDate) }}</span>
       <span class="info-text"> JD {{ showJDText(currentDate) }}</span>
+
+      <v-btn
+        class="video-btn"
+        :icon="isMuted ? `mdi-volume-off` : `mdi-volume-high`"
+        @click="toggleMute"
+        size="small"
+      />
+      <audio ref="backgroundMusic" :src="backgroundmusic" autoplay loop style="display:none;"></audio>
     </div>
   </div>
 </template>
