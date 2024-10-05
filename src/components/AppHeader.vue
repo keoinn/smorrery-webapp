@@ -2,7 +2,9 @@
   <div class="navigation-container">
     <div class="navigation-bar">
       <div class="navigation-text text-wrapper-1">Education</div>
-      <div class="navigation-text text-wrapper-2">Event</div>
+      <router-link to="/events">
+        <div class="navigation-text text-wrapper-2">Event</div>
+      </router-link>
       <div class="navigation-text text-wrapper-3">Lab</div>
       <div class="navigation-text text-wrapper-4">Challenge</div>
       <div class="navigation-text text-wrapper-5">Tour</div>
