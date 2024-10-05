@@ -11,6 +11,10 @@ import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 import { defineConfig, loadEnv } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 
+// eslint-disable-next-line no-control-regex
+const INVALID_CHAR_REGEX = /[\x00-\x1F\x7F<>*#"{}|^[\]`;?:&=+$,]/g;
+const DRIVE_LETTER_REGEX = /^[a-z]:/i;
+
 const ENV_VAR = loadEnv('', process.cwd()).VITE_DEPLOY_URL
 const DEPLOY_URL = (ENV_VAR === undefined)? '' : ENV_VAR //loadEnv('', process.cwd()).VITE_DEPLOY_URL
 
@@ -67,5 +71,21 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        // https://github.com/rollup/rollup/blob/master/src/utils/sanitizeFileName.ts
+        sanitizeFileName(name) {
+          const match = DRIVE_LETTER_REGEX.exec(name);
+          const driveLetter = match ? match[0] : '';
+          // substr 是被淘汰語法，因此要改 slice
+          return (
+            driveLetter +
+            name.slice(driveLetter.length).replace(INVALID_CHAR_REGEX, "")
+          );
+        },
+      },
+    },
   },
 })
