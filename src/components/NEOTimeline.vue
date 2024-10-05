@@ -1,109 +1,79 @@
-<!-- src/components/NEOIntroduction.vue -->
-<!-- src/components/NEOIntroduction.vue -->
 <template>
   <div class="container">
-    <div class="text-center">
-      <!-- <h2>NEO Lookup</h2> -->
-    </div>
-    <div class="container d-flex flex-wrap justify-center event-container">
-      <div class="event-selector" style="flex: 1;">
-        <h3>Select an Event</h3>
-        <v-card class="mx-auto" max-width="300">
-          <v-list>
-            <template v-if="eventList.length">
-              <v-list-item-group v-model="selectedEvent">
-                <v-list-item
-                  v-for="item in eventList"
-                  :key="item.id"
-                  :value="item.id"
-                  @click="selectEvent(item)"
-                >
-                  <v-list-item-title>{{ item.name }}</v-list-item-title>
-                </v-list-item>
-              </v-list-item-group>
-            </template>
-            <template v-else>
-              <v-list-item disabled>
-                <v-list-item-title>No Events</v-list-item-title>
-              </v-list-item>
-            </template>
-          </v-list>
-        </v-card>
+    <!-- 時間軸標題及搜尋欄位 -->
+    <header id="header">
+      <h1>NEO Close-Approach Events</h1>
+      <div id="search-container">
+        <input
+          type="text"
+          id="search-box"
+          placeholder="Search for objects, events..."
+          v-model="searchQuery"
+          @input="onSearch"
+        />
       </div>
+    </header>
 
-      <div class="event-details d-flex flex-wrap" style="flex: 3; margin-left: 20px;">
-        <div class="event-card" style="flex: 1; margin-right: 20px;">
-          <!-- 這裡可以添加其他的內容或功能 -->
+       <!-- 事件卡片 -->
+       <div class="event-details">
+      <div class="event-card img-card" id="event-image">
+        <img :src="selectedEvent?.imageUrl || ''" alt="Event Image" />
+      </div>
+      <div class="event-card">
+        <div id="event-content">
+          <h2>{{ selectedEvent?.des || 'No Data' }}</h2>
+          <h3>{{ selectedEvent?.cd || 'No Data' }}</h3>
+          <p>{{ selectedEvent?.description || 'No description available' }}</p>
         </div>
-        <div class="event-card" style="flex: 2;">
-          <div id="event-content">
-              <h2>{{ neo.des || 'No Data' }}</h2>
-              <h3>{{ neo.cd || 'No Data' }}</h3>
-              <p>{{ neo.description || 'No description available' }}</p>
-          </div>
-          <div id="event-table">
-            <h3>Close-Approach Data</h3>
-            <table v-if="selectedEvent !== null">
-                <tbody>
-                    <tr v-for="field in otherFields" :key="field">
-                    <th>{{ field }}</th>
-                    <td>{{ neo[field] }}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p v-else>No data for this event.</p>
-          </div>
-          <div id="event-links">
-                <a
-                v-for="link in neo.links || []"
-                :key="link.text"
-                :href="link.url"
-                class="event-link"
-                target="_blank"
-                >{{ link.text }}</a
-                >
-          </div>
+        <div id="event-table">
+          <h3>Close-Approach Data</h3>
+          <table v-if="selectedEvent">
+            <tbody>
+              <tr v-for="field in otherFields" :key="field">
+                <th>{{ field }}</th>
+                <td>{{ selectedEvent[field] }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <p v-else>No data for this event.</p>
+        </div>
+        <div id="event-links">
+          <a
+            v-for="link in selectedEvent?.links || []"
+            :key="link.text"
+            :href="link.url"
+            class="event-link"
+            target="_blank"
+            >{{ link.text }}</a
+          >
         </div>
       </div>
     </div>
 
-    <div class="timeline">
-      <v-timeline class="neo-timeline" direction="horizontal" line-thickness="5" line-color="rgba(255, 255, 255, 0.3)" size="small" hide-opposite="true">
-        <v-timeline-item
-          v-for="day in timelineDays"
-          :key="day.date"
-          :title="day.title"
-          @click="onDateSelect(day.date)"
-        >
-          <template v-slot:default>
-            <div>{{ day.title }}</div>
-          </template>
-        </v-timeline-item>
-      </v-timeline>
-    </div>
-    <div class="timeline-controls d-flex flex-column align-items-center mb-4">
-      <div class="d-flex justify-center align-items-center mb-2">
-        <button class="timeline-btn" @click="prevMonth">
-          <span class="mdi mdi-menu-left" style="font-size: 70px; color: white;"></span> Previous
-        </button>
-
-        <button class="calendar-btn mx-10" @click="openCalendar">
-          <span class="mdi mdi-calendar-month-outline" style="font-size: 40px; color: white;"></span>
-        </button>
-
-        <button class="timeline-btn" @click="nextMonth">
-          Next <span class="mdi mdi-menu-right" style="font-size: 70px; color: white;"></span>
-        </button>
+    <!-- 時間軸結構 -->
+    <div id="timeline-container" @wheel="onWheelScroll" @mousedown="onMouseDown">
+      <div id="timeline" :style="{ transform: `translateX(${timelineOffset}px)` }">
+        <div
+          v-for="(date, index) in filteredTimelineDays"
+          :key="index"
+          class="date-marker"
+          :class="{ event: date.hasEvent }"
+          :data-date="date.title"
+          @click="onDateSelect(date.date)"
+          @mouseover="showEvent(date)"
+        ></div>
       </div>
     </div>
-    <v-dialog v-model="isCalendarOpen" width="350">
-      <v-date-picker
-        :model-value="currentDate"
-        @update:modelValue="onDateSelect"
-        color="black"
-        font-size="20px"
-      />
-    </v-dialog>
+
+    <!-- 時間軸控制按鈕 -->
+    <div id="timeline-controls">
+      <button class="timeline-button" @click="prevMonth">&lt; Previous</button>
+      <button id="today-button" @click="resetToToday">Today</button>
+      <button class="timeline-button" @click="nextMonth">Next &gt;</button>
+    </div>
+
+    <!-- 當前年份顯示 -->
+    <div id="year-display">{{ currentDate.getFullYear() }}</div>
   </div>
 </template>
 
@@ -111,36 +81,94 @@
 import { ref, computed, onMounted } from 'vue';
 import { fetchCADApi } from '@/utils/APIRequests/apis/event.js';
 
+const searchQuery = ref('');
 const neoObjects = ref([]);
 const neoDataByDate = ref({});
-const fields = ref([]);
 const selectedDate = ref(new Date());
-const dataFetched = ref(false);
-const eventList = ref([]);
 const selectedEvent = ref(null);
 const currentDate = ref(new Date());
 const timelineDays = ref([]);
-const isCalendarOpen = ref(false);
-const neo = ref({});
+const fields = ref([]);
+const timelineOffset = ref(0); // 追蹤時間軸偏移量
+const isDragging = ref(false); // 追蹤是否正在拖曳
+let startX = 0; // 滑鼠起始位置
+let initialTimelineOffset = 0; 
 
-// 月份映射表
-const monthMap = {
-  Jan: '01',
-  Feb: '02',
-  Mar: '03',
-  Apr: '04',
-  May: '05',
-  Jun: '06',
-  Jul: '07',
-  Aug: '08',
-  Sep: '09',
-  Oct: '10',
-  Nov: '11',
-  Dec: '12',
+// 根據搜尋字串動態過濾 timelineDays 資料
+const filteredTimelineDays = computed(() => {
+  return timelineDays.value.filter(date =>
+    date.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+// 處理滑鼠滾輪滾動
+const onWheelScroll = (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  timelineOffset.value -= event.deltaY; // 直接使用 deltaY 調整時間軸偏移
 };
+
+// 處理搜尋輸入框變更
+const onSearch = () => {
+  console.log('Search for:', searchQuery.value);
+};
+
+// 處理滑鼠拖曳開始
+const onMouseDown = (event) => {
+  isDragging.value = true;
+  startX = event.clientX;
+  initialTimelineOffset = timelineOffset.value;
+  document.addEventListener('mousemove', onMouseMove);
+  document.addEventListener('mouseup', onMouseUp);
+};
+
+
+// 處理滑鼠移動
+const onMouseMove = (event) => {
+  if (!isDragging.value) return;
+  const moveX = event.clientX - startX;
+  timelineOffset.value += moveX;
+  startX = event.clientX;
+};
+
+
+// 處理滑鼠放開
+const onMouseUp = () => {
+  isDragging.value = false;
+  const totalMovement = timelineOffset.value - initialTimelineOffset;
+  const daysDiff = Math.round(totalMovement / 40); // 假設每40像素代表一天
+  currentDate.value = new Date(currentDate.value.setDate(currentDate.value.getDate() - daysDiff));
+
+  // 重置時間軸偏移量並重新生成時間軸
+  timelineOffset.value = 0;
+  generateTimeline(); 
+  document.removeEventListener('mousemove', onMouseMove);
+  document.removeEventListener('mouseup', onMouseUp);
+};
+
+
+// 清除事件監聽器（當組件卸載時）
+onBeforeUnmount(() => {
+  document.removeEventListener('mousemove', onMouseMove);
+  document.removeEventListener('mouseup', onMouseUp);
+});
 
 // 解析日期字串，格式為 'YYYY-MMM-DD'，轉換為 'YYYY-MM-DD'
 const parseDate = (dateStr) => {
+  const monthMap = {
+    Jan: '01',
+    Feb: '02',
+    Mar: '03',
+    Apr: '04',
+    May: '05',
+    Jun: '06',
+    Jul: '07',
+    Aug: '08',
+    Sep: '09',
+    Oct: '10',
+    Nov: '11',
+    Dec: '12',
+  };
   const [year, monthName, day] = dateStr.split('-');
   const month = monthMap[monthName];
   return `${year}-${month}-${day}`;
@@ -170,7 +198,7 @@ const processData = (NEO_data) => {
   // 按日期分組
   const dataByDate = {};
   objects.forEach((obj) => {
-    const dateStr = obj.cd.split(' ')[0]; // 取得日期部分，例如 '2024-Oct-10'
+    const dateStr = obj.cd.split(' ')[0];
     const formattedDate = parseDate(dateStr);
     if (!dataByDate[formattedDate]) {
       dataByDate[formattedDate] = [];
@@ -179,234 +207,236 @@ const processData = (NEO_data) => {
   });
 
   neoDataByDate.value = dataByDate;
-  dataFetched.value = true;
-};
-
-// 選擇事件
-const selectEvent = (item) => {
-  selectedEvent.value = item.id;
-  const event = neoObjects.value.find((neo) => neo.cd === item.name.split(' for ')[1]);
-  if (event) {
-    neo.value = event;
-  }
 };
 
 
-const formatDateToDataFormat = (dateObj) => {
-  const year = dateObj.getFullYear();
-  const monthNumber = dateObj.getMonth() + 1;
-  const monthName = Object.keys(monthMap).find(
-    (key) => parseInt(monthMap[key]) === monthNumber
-  );
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  return `${year}-${monthName}-${day}`;
-};
-
-const otherFields = computed(() => {
-  return fields.value
-    ? fields.value.filter(
-        (field) => !['des', 'cd', 'description', 'links'].includes(field)
-      )
-    : [];
-});
-
-// 當前選定日期的 NEO 資料
-const neosForSelectedDate = computed(() => {
-  if (!dataFetched.value || !selectedDate.value) return [];
-  const formattedDate = parseDate(formatDateToDataFormat(selectedDate.value));
-  return neoDataByDate.value[formattedDate] || [];
-});
-
-// 生成時間軸
 const generateTimeline = () => {
   timelineDays.value = [];
-  for (let i = -10; i <= 10; i++) {
+  for (let i = -100; i <= 100; i++) {
     const date = new Date(currentDate.value);
     date.setDate(currentDate.value.getDate() + i);
-    const dayTitle = `${Object.keys(monthMap).find(
-      (key) => monthMap[key] === String(date.getMonth() + 1).padStart(2, '0')
-    )} ${date.getDate()}`;
-    timelineDays.value.push({ date, title: dayTitle });
+    
+    // 格式化日期，只顯示「月-日」
+    const formattedDate = date.toISOString().split('T')[0].slice(5); // "MM-DD"
+    
+    // 根據日期獲取當天的事件數量
+    const eventsForDate = neoDataByDate.value[formattedDate] || [];
+    const eventCount = eventsForDate.length;
+
+    // 根據事件數量決定顏色
+    let markerColor = '';
+    if (eventCount > 5) {
+      markerColor = 'red';
+    } else if (eventCount > 0) {
+      markerColor = 'yellow';
+    }
+
+    timelineDays.value.push({
+      date,
+      title: formattedDate, // 只顯示月和日
+      hasEvent: eventCount > 0,
+      eventCount,
+      markerColor, // 紀錄顏色，稍後在模板中使用
+    });
   }
 };
 
-// 更新事件列表，只包含當天的資料
-const updateEventList = () => {
-  const formattedDate = parseDate(formatDateToDataFormat(selectedDate.value));
-  eventList.value = neoDataByDate.value[formattedDate]?.map((item, index) => ({
-    id: index,
-    name: `Event for ${item.cd}`,
-  })) || [];
+
+
+
+const showEvent = (date) => {
+  const formattedDate = date.date.toISOString().split('T')[0];
+  selectedEvent.value = neoDataByDate.value[formattedDate]?.[0] || null;
+};
+
+// 選擇日期
+const onDateSelect = (date) => {
+  selectedDate.value = date;
+  showEvent({ date });
 };
 
 // 切換至上個月
 const prevMonth = () => {
   currentDate.value.setMonth(currentDate.value.getMonth() - 1);
   generateTimeline();
-  updateEventList();
 };
 
 // 切換至下個月
 const nextMonth = () => {
   currentDate.value.setMonth(currentDate.value.getMonth() + 1);
   generateTimeline();
-  updateEventList();
 };
 
 // 重置到今天
 const resetToToday = () => {
   currentDate.value = new Date();
   generateTimeline();
-  updateEventList();
 };
 
-// 開啟日曆選擇
-const openCalendar = () => {
-  isCalendarOpen.value = true;
-};
 
-// 選擇日期
-const onDateSelect = (date) => {
-  currentDate.value = date;
-  selectedDate.value = date;
-  isCalendarOpen.value = false;
-  generateTimeline();
-  updateEventList();
-};
+
 
 // 當組件掛載時取得資料並初始化時間軸
 onMounted(async () => {
-  generateTimeline();
   try {
-    const NEO_data = await fetchCADApi('2024-10-10', '2024-10-20', 0.2);
+    const NEO_data = await fetchCADApi('2024-10-10', '2024-10-30', 0.2);
     processData(NEO_data.data);
-    updateEventList();
+    console.log('NEO data:', NEO_data.data);
+    generateTimeline();
   } catch (error) {
     console.error('Error fetching NEO data:', error);
-    dataFetched.value = true; // 即使出錯也需要設置為 true，以防止載入狀態一直存在
   }
+});
+
+// 根據資料動態計算欄位
+const otherFields = computed(() => {
+  return fields.value ? fields.value.filter((field) => !['des', 'cd', 'description', 'links'].includes(field)) : [];
 });
 </script>
 
 <style scoped>
-.container {
-  margin: 20px 5%;
+#timeline-container {
+  position: relative;
+  height: 120px;
+  overflow: hidden;
+  cursor: grab; /* 增加手型游標 */
 }
 
-.event-selector {
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  font: 30px normal;
+#timeline-container:active {
+  cursor: grabbing; /* 拖曳時游標變成抓取中狀態 */
 }
 
-.event-details {
-  display: flex;
-  justify-content: space-between;
-  height: 550px;
-  gap: 30px;
-}
-
-.event-card {
-  flex: 1;
-  min-width: 300px;
-  height: 100%;
-  background: rgba(68, 68, 68, 0.5);
-  padding: 15px;
-  border-radius: 20px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.timeline-controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 20px 0;
-}
-
-.timeline-btn {
-  background-color: transparent;
-  font-size: 20px;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-}
-
-.calendar-btn {
-  height: 80px;
-  width: 80px;
-  background-color: transparent; 
-  border: 2px solid white;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: black;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-/* .today-btn {
-  background-color: white;
-  border: 2px solid white;
-  color: black;
-  padding: 10px 20px;
-  font-size: 20px;
-  cursor: pointer;
-  border-radius: 20px;
-  transition: background-color 0.3s ease;
-} */
-
-.today-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-.calendar-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-}
-
-
-.year-label {
-  display: flex;
-  justify-content: right;
-  margin: 0px 5%;
-  padding-left: 10px;
-  margin-bottom: 20px;
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.timeline-btn {
-  display: flex;
-  flex-direction: row; 
-  justify-content: center;
-  text-align: center;
-  align-items: center;
-  background-color: transparent;
-  font: 30px bold;
-  width: 150px;
-}
-
-.timeline {
-  display: flex;
-  justify-content: space-between;
-  margin: 0px 5%;
-}
-
-/* .simple-line {
+#timeline {
   position: absolute;
-  top: 50%;
+  bottom: 20px;
   left: 0;
-  right: 0;
   width: 100%;
-  height: 2px;
-  background-color: #ffffff;
-  z-index: 1;
-  transform: translateY(-50%);
-} */
-
-.neo-timeline .v-timeline-item {
-  flex: 1;
-  text-align: center;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  transition: transform 0.5s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
+
+.date-marker {
+  min-width: 2px;
+  height: 20px;
+  background: #ffffff;
+  margin: 0 40px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.date-marker::before {
+  content: attr(data-date);
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  white-space: nowrap;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.date-marker.event {
+  background: #ffd700;
+}
+
+.date-marker:hover {
+  height: 30px;
+  transform: scaleY(1.2);
+}
+
+.date-marker:hover::before {
+  opacity: 1;
+}
+
+#timeline-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+  gap: 20px;
+}
+
+.timeline-button,
+#today-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #ffffff;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px 15px;
+  transition: all 0.3s ease;
+}
+
+.timeline-button:hover,
+#today-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+#year-display {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  font-size: 28px;
+  opacity: 0.7;
+}
+
+    #event-display {
+            display: none;
+            flex-grow: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 20px 0;
+            height: 150px;
+        }
+
+    .event-card {
+        height: 100%;
+        overflow-y: auto;
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+
+    #event-image {
+        height: 100%;
+        width: 29%;
+    }
+
+    #event-image img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+    }
+
+    #event-text {
+        height: 100%;
+        width: 69%;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .event-card h2 {
+        font-size: 1.8em;
+        margin-top: 0;
+        color: #a0a0ff;
+    }
+
+    .event-card h3 {
+        font-size: 1.4em;
+        margin-top: 15px;
+        color: #a0a0ff;
+    }
+
+    .event-card p {
+        font-size: 1em;
+        line-height: 1.6;
+    }
 </style>
