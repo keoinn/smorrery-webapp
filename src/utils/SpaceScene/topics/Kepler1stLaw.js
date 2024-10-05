@@ -43,12 +43,12 @@ export class Kepler1stLaw extends EmptyTopic {
     this.scene.add(orbitingObject);
     this.loop.updatables.push(orbitingObject);
     custom_planet.isTrace = true;
-    // this.objects3d.push(orbitingObject);
     orbitingObject.name = "HI";
   }
   //TODO:
   // 1. adjust min and max
   // 2. handle e > 1
+  // 3. change color
   addPane(_pane) {
     const pane = _pane.addFolder({ title: "Orbit Elements" });
     const data = {
