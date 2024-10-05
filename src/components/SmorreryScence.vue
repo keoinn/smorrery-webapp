@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch, computed, reactive} from "vue";
 import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
+import { fetchCadApi, fetchSbdbApi } from '@/utils/APIRequests/apis/event.js';
 import backgroundmusic from '@/assets/backgroundmusic.wav'
 
 let space_scene;
@@ -22,9 +23,14 @@ const timeSpeed = ref(1.0);
 //currentDate
 const currentDate = ref(946728000000)
 
+// Data Fetch
+const neoData = ref([]);  // from SBDB API response
+const cadData = ref([]);  // from CAD API response
+
 // 背景音樂播放
 const backgroundMusic = ref(false);
 const isMuted = ref(false);
+
 
 
 // 畫布啟動關閉 -> 畫面渲染
@@ -103,6 +109,26 @@ const toggleMute = () => {
 onMounted(() => {
   const target_s = document.querySelector("#target");
   space_scene = new SpaceScene(target_s);
+});
+
+onMounted(async () => {
+  try {
+    // Use fetchSbdbApi to fetch NEO data
+    const sbdbResponse = await fetchSbdbApi(200); // Get 200
+    neoData.value = sbdbResponse.data;
+    console.log('Fetched NEO data:', neoData.value.data.length);
+
+    // Use fetchCadApi to fetch Close-Aproach Data
+    const date_min = '2024-01-01';
+    const date_max = '2025-01-01';
+    const dist_max = '0.05';        // in AU
+    const cadResponse = await fetchCadApi(date_min, date_max, dist_max);
+    cadData.value = cadResponse.data;
+    console.log('Fetched CAD data:', cadData.value.data.length);
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
 
   watch(space_scene.loop.currentDate_ref, (val) => {
     currentDate.value = val
@@ -110,6 +136,8 @@ onMounted(() => {
 
   backgroundMusic.value.muted = isMuted.value;
 });
+
+
 </script>
 
 <template>
