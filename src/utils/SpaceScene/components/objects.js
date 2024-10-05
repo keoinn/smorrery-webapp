@@ -110,15 +110,16 @@ class CelestialBody {
    * It also handles the creation of orbital elements and visuals for artificial objects and planets.
    * 
    * @param {Object} data - The data object containing properties like name, radius, and orbital elements.
-   * @param {Object} [textures=null] - Optional texture paths for mapping textures to the celestial body.
+   * @param {Object} [texturePack=null] - Optional texture paths for mapping textures to the celestial body.
    */
   constructor(scene, data, texturePack = null) {
     this.scene = scene;
     this.name = data.name || 'Unnamed';  // The name of the celestial body, default is 'Unnamed'
     this.radius = data.radius || 1;  // The radius of the celestial body, default is 1
     this.orbitalParameters = data.orbitalParameters || {};  // Orbital elements such as semi-major axis and eccentricity
-    this.category = data.category || 'small body';  // Category of the body (e.g., planet, small body)
-    this.color = data.color || 0x404040;  // Color of the celestial body
+    this.category = data.category || 'NEO';  // Category of the body (e.g., planet, NEO)
+    this.opacity = data.opacity || 1;  // Opacity of the orbit of celestial body, default is 1
+    this.color = data.color || 0x404040;  // Color of the orbit and the mesh of celestial body
 
     this.texturePath = getTexturePath(texturePack, this.name.toUpperCase())
 
@@ -221,7 +222,7 @@ class CelestialBody {
       const traceMaterial = new LineBasicMaterial({
           color: this.color,
           transparent: true,
-          opacity: this.category === 'NEO' ? 0.3 : 1.0 
+          opacity: this.opacity 
       });
       return new Line(traceGeometry, traceMaterial);
   }
@@ -264,7 +265,7 @@ class CelestialBody {
       ring.receiveShadow = true;
 
       this.container.add(ring);
-      console.log('Ring created');
+      // console.log('Ring created');
   }
 
   /**
@@ -277,7 +278,7 @@ class CelestialBody {
    * @returns {Object3D} — A container holding the orbit line.
    * @see https://en.wikipedia.org/wiki/Conic_section#Conic_parameters
    */
-  createOrbit(numPoints = 100, visible = false, opacity = 1.0) {
+  createOrbit(numPoints = 100, visible = false) {
       const { a, e, i, om, w } = this.orbitalParameters;
       const aScaled = a * spaceScale;
       
@@ -322,7 +323,7 @@ class CelestialBody {
       const material = new LineBasicMaterial({
           color: this.color,
           transparent: true,
-          opacity: opacity,
+          opacity: this.opacity,
       });
       const orbitLine = new Line(geometry, material);
   
