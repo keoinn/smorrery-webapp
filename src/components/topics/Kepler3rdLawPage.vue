@@ -13,6 +13,7 @@ ChartJS.register(PointElement, LineElement, Tooltip, Legend, LogarithmicScale);
 //TODO:
 // 1. adjust the size of the chart
 // 2. change the style of toggle line button
+// 3. fix tooltip
 const props = defineProps({
   pros: {
     type: Object,
@@ -61,6 +62,10 @@ const options = {
     x: {
       display: true,
       type: "logarithmic",
+      title: {
+        display: true,
+        text: "Orbital Period (year)",
+      },
     },
     x2: {
       display: false,
@@ -70,6 +75,10 @@ const options = {
     y: {
       display: true,
       type: "logarithmic",
+      title: {
+        display: true,
+        text: "Semi-major axis (AU)",
+      },
     },
   },
   plugins: {

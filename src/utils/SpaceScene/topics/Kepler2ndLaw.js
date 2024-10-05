@@ -44,7 +44,6 @@ export class Kepler2ndLaw extends EmptyTopic {
     this.sweptAreaGroup.clear();
     this.previousPoint = null;
     this.previousSweptAreaPhase = null;
-    console.log(this);
   }
 
   tick(delta, scene, currentDate) {
