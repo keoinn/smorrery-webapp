@@ -83,7 +83,7 @@ const STD_GRAV_PARAM_SUN =  GRAV_CONST_ASTRO * (SOLAR_MASS_TO_KG / EARTH_MASS_TO
 
 const SUN_DATA = {
   name: "Sun",
-  orbitalElements: {},
+  orbitalParameters: {},
   color: 0xffff00,
   mass: 332955.2,
   radius: 3,
@@ -95,7 +95,7 @@ const SUN_DATA = {
 const PLANETS_DATA = [
   {
   name: 'Mercury',
-  orbitalElements: {
+  orbitalParameters: {
     a: 0.38709927,          
     e: 0.20563593,
     i: 7.00497902,
@@ -111,7 +111,7 @@ const PLANETS_DATA = [
   },
   {
   name: 'Venus',
-  orbitalElements: {
+  orbitalParameters: {
     a: 0.72333566,
     e: 0.00677672,
     i: 3.39467605,
@@ -126,7 +126,7 @@ const PLANETS_DATA = [
   },
   {
   name: 'Earth',
-  orbitalElements: {
+  orbitalParameters: {
     a: 1.00000261,
     e: 0.01671123,
     i: -0.00001531,
@@ -141,7 +141,7 @@ const PLANETS_DATA = [
   },
   {
   name: 'Mars',
-  orbitalElements: {
+  orbitalParameters: {
     a: 1.52371034,
     e: 0.09339410,
     i: 1.84969142,
@@ -156,7 +156,7 @@ const PLANETS_DATA = [
   },
   {
   name: 'Jupiter',
-  orbitalElements: {
+  orbitalParameters: {
     a: 5.20288700,
     e: 0.04838624,
     i: 1.30439695,
@@ -171,7 +171,7 @@ const PLANETS_DATA = [
   },
   {
   name: 'Saturn',
-  orbitalElements: {
+  orbitalParameters: {
     a: 9.53667594,
     e: 0.05386179,
     i: 2.48599187,
@@ -186,7 +186,7 @@ const PLANETS_DATA = [
   },
   {
   name: 'Uranus',
-  orbitalElements: {
+  orbitalParameters: {
     a: 19.18916464,
     e: 0.04725744,
     i: 0.77263783,
@@ -201,7 +201,7 @@ const PLANETS_DATA = [
   },
   {
   name: 'Neptune',
-  orbitalElements: {
+  orbitalParameters: {
     a: 30.06992276,
     e: 0.00859048,
     i: 1.77004347,

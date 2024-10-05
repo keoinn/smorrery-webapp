@@ -10,7 +10,7 @@ const sunLightColor = 0xffffff;
 const sunLightIntensity = 1;
 const sunLightRange = 1000;
 const ambientLightColor = 0x404040; 
-const ambientLightIntensity = 0.5;
+const ambientLightIntensity = 1;
 
 /**
  * Create a light source based on the specified type.
