@@ -39,6 +39,7 @@ export class Kepler2ndLaw extends EmptyTopic {
   }
 
   onObjectChange(newObject, oldObject) {
+    if (newObject.length === 0) return;
     this.currentObject = newObject.shift();
     this.currentObject.isTrace = true;
     this.sweptAreaGroup.clear();

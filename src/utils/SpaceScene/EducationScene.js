@@ -24,7 +24,15 @@ class EducationScene extends EmptyScene {
     // 行星
     this.orbitingObjects = [...planets_const, ...this.smallBodies];
 
-    this.availableObjects = this.orbitingObjects.map((obj) => obj.name);
+    // group by category
+    this.availableObjects = {};
+    this.orbitingObjects.forEach((obj) => {
+      if (!this.availableObjects[obj.category]) {
+        this.availableObjects[obj.category] = [];
+      }
+      this.availableObjects[obj.category].push(obj.name);
+    });
+
     // all 3D objects in scene
     this.objects3d = [];
 
@@ -45,10 +53,6 @@ class EducationScene extends EmptyScene {
     this.loop.updatables.push(this.customUpdatable);
 
     this.loop.played = 1; // 是否計算下一幀差異
-  }
-
-  getAvailableObjects() {
-    return this.availableObjects;
   }
 
   addCelestialBody(bodyName) {
