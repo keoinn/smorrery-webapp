@@ -1,7 +1,7 @@
 import { Clock } from "three";
 import { ref } from 'vue';
-import { RENDER_TIMES } from "@/utils/SpaceScene/utils/smorrery_const.js";
-import { calculateJulianDateSinceJ2000} from "@/utils/SpaceScene/utils/calculator.js";
+import { RENDER_TIMES } from "@/utils/SpaceScene/utils/constants.js";
+import { calcYearSinceJ2000 } from "@/utils/SpaceScene/utils/calculator.js";
 // const clock = new Clock();
 const MIN_DATE = new Date(1900, 0, 1);
 const MAX_DATE = new Date(2100, 11, 31);
@@ -46,7 +46,7 @@ class Loop {
   set shiftDate(val) {
     this.currentDate = new Date(val)
     this.currentDate_ref.value = this.currentDate.getTime();
-    const delta = calculateJulianDateSinceJ2000(this.currentDate)
+    const delta = calcYearSinceJ2000(this.currentDate)
     for (const object of this.updatables) {
       object.tick(delta, this.scene);
       object.trace = []
@@ -94,7 +94,7 @@ class Loop {
       } else if (this.currentDate > MAX_DATE) {
         this.currentDate = MAX_DATE;
       }  
-      const delta = calculateJulianDateSinceJ2000(this.currentDate)
+      const delta = calcYearSinceJ2000(this.currentDate)
 
       // Reactivity API for watch from Outer
       this.currentDate_ref.value = this.currentDate.getTime()

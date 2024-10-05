@@ -1,8 +1,5 @@
 import { WebGLRenderer, PCFSoftShadowMap } from "three";
-import {
-  CSS2DRenderer,
-  CSS2DObject,
-} from "three/addons/renderers/CSS2DRenderer.js";
+import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 
 function createRenderer(width, height) {
   const renderer = new WebGLRenderer({ antialias: true });

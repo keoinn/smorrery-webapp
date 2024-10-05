@@ -62,7 +62,7 @@ const forwardControlChange = () => {
 const changeIsTraceStatus = () => {
   isTrace.value = !isTrace.value;
   space_scene.OrbitingRecordTrace = isTrace.value;
-  console.log(space_scene.orbitingObjects);
+  console.log(`Trace status = ${isTrace.value}`); // TEST: log the new trace status value
 };
 
 const dateShift = (val) => {
@@ -74,15 +74,13 @@ const dateShift = (val) => {
 }
 
 watch(timeSpeed, (val) => {
-  console.log(val);
+  console.log(`Speed = ${val}x`); // TEST: log the new speed value
   space_scene.loop.timeScaleRate = val;
 });
 
 
-// 顯示小數點
 const showFixedSpeedVal = (val) => {
-  const val_int = parseFloat(val);
-  return val_int;
+  return parseFloat(val);
 };
 
 // 計算日期字串
@@ -200,7 +198,7 @@ onMounted(() => {
   height: calc(100vh - 50px);
   #info {
     position: absolute;
-    top: 10%;
+    top: 13%;
     width: 100%;
     text-align: center;
     color: white;

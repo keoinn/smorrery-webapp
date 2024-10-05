@@ -4,10 +4,10 @@ import * as THREE from "three";
 import {
   CSS2DRenderer,
   CSS2DObject,
-} from "three/addons/renderers/CSS2DRenderer.js";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+} from "three/examples/jsm/renderers/CSS2DRenderer.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-import { J2000, SSS_TEXTURES, planets_const, sun } from "@/utils/SpaceScene/utils/smorrery_const.js";
+import { J2000, SSS_TEXTURES, planets_const, sun } from "@/utils/SpaceScene/utils/constants.js";
 
 let smallBodies = []; // 行星、小天體物件陣列
 let orbitingObjects = []; // 行星、小天體物件陣列
@@ -44,11 +44,11 @@ const initSence = () => {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   target.value.appendChild(renderer.domElement);
 
-  const labelRenderer = new CSS2DRenderer();
-  labelRenderer.setSize(window.innerWidth, window.innerHeight);
-  labelRenderer.domElement.style.position = "absolute";
-  labelRenderer.domElement.style.top = "0px";
-  target.value.appendChild(labelRenderer.domElement);
+  // const labelRenderer = new CSS2DRenderer();
+  // labelRenderer.setSize(window.innerWidth, window.innerHeight);
+  // labelRenderer.domElement.style.position = "absolute";
+  // labelRenderer.domElement.style.top = "0px";
+  // target.value.appendChild(labelRenderer.domElement);
 
   const controls = new OrbitControls(camera, labelRenderer.domElement);
   controls.enableDamping = true;
