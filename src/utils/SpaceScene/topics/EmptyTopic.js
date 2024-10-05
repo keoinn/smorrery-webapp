@@ -10,12 +10,17 @@ export class EmptyTopic {
 
   tick() {}
 
-  onEnter(scene, camera) {
+  onEnter(scene, camera, loop) {
     this.scene = scene;
     this.camera = camera;
+    this.loop = loop;
   }
 
   onExit() {}
 
-  onObjectChange(newObject, oldObject) {}
+  onObjectChange(newObject, oldObject) {
+    newObject.forEach((object) => {
+      object.isTrace = true;
+    });
+  }
 }

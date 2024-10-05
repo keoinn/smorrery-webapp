@@ -11,7 +11,11 @@ export class TopicController {
         this.currentTopic.onExit();
       }
       this.currentTopic = topic;
-      this.currentTopic.onEnter(education_scene.scene, education_scene.camera);
+      this.currentTopic.onEnter(
+        education_scene.scene,
+        education_scene.camera,
+        education_scene.loop
+      );
 
       // 調用回調函數
       if (this.onTopicChange) {

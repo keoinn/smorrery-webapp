@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, nextTick } from "vue";
 import { EducationScene } from "@/utils/SpaceScene/EducationScene.js";
 import { EmptyTopic } from "@/utils/SpaceScene/topics/EmptyTopic.js";
 import { TopicController } from "@/utils/SpaceScene/topics/TopicController.js";
@@ -23,44 +23,54 @@ const tweakpaneState = ref({
   selectedBodies: [],
 });
 
-const onPaneCreated = (pane) => {
-  const container = document.querySelector(".tweakpane-container");
-  if (container && pane.element.parentElement) {
-    container.appendChild(pane.element);
-  }
-  if (isMultiSelect.value) {
-    Object.keys(celestialBodies.value).forEach((category, index) => {
-      const tab = pane.addFolder({
-        title: category,
-      });
-      const params = {};
-      celestialBodies.value[category].forEach((name) => {
-        params[name] = name === "Mercury";
-        tab.addBinding(params, name).on("change", (ev) => {
-          if (ev.value && !tweakpaneState.value.selectedBodies.includes(name)) {
-            tweakpaneState.value.selectedBodies.push(name);
-          } else if (!ev.value) {
-            tweakpaneState.value.selectedBodies =
-              tweakpaneState.value.selectedBodies.filter((b) => b !== name);
-          }
+const onPaneCreated = (_pane) => {
+  nextTick(() => {
+    const container = document.querySelector(".tweakpane-container");
+    if (container && _pane.element.parentElement) {
+      container.appendChild(_pane.element);
+    }
+    const pane = _pane.addFolder({ title: "Select Objects" });
+    if (isMultiSelect.value) {
+      Object.keys(celestialBodies.value).forEach((category, index) => {
+        const tab = pane.addFolder({
+          title: category,
+        });
+        const params = {};
+        celestialBodies.value[category].forEach((name) => {
+          params[name] = name === "Mercury";
+          tab.addBinding(params, name).on("change", (ev) => {
+            if (
+              ev.value &&
+              !tweakpaneState.value.selectedBodies.includes(name)
+            ) {
+              tweakpaneState.value.selectedBodies.push(name);
+            } else if (!ev.value) {
+              tweakpaneState.value.selectedBodies =
+                tweakpaneState.value.selectedBodies.filter((b) => b !== name);
+            }
+          });
         });
       });
-    });
-  } else {
-    const params = { selection: "Mercury" };
-    const options = {};
-    Object.keys(celestialBodies.value).forEach((category) => {
-      celestialBodies.value[category].forEach((name) => {
-        options[name] = name;
+    } else {
+      const params = { selection: "Mercury" };
+      const options = {};
+      Object.keys(celestialBodies.value).forEach((category) => {
+        celestialBodies.value[category].forEach((name) => {
+          options[name] = name;
+        });
       });
-    });
-    pane
-      .addBinding(params, "selection", { options: options })
-      .on("change", (ev) => {
-        tweakpaneState.value.selectedBodies = [ev.value];
-      });
-  }
-  handlePaneChaned({ selectedBodies: ["Mercury"] });
+      pane
+        .addBinding(params, "selection", { options: options })
+        .on("change", (ev) => {
+          tweakpaneState.value.selectedBodies = [ev.value];
+        });
+    }
+    //TODO: change default selection
+    handlePaneChaned({ selectedBodies: ["Mercury"] });
+    if (currentTopic.value.addPane) {
+      currentTopic.value.addPane(_pane);
+    }
+  });
 };
 
 const currentTopic = computed(() => {
@@ -152,7 +162,7 @@ onMounted(() => {
       <div class="tweakpane-container">
         <v-tweakpane
           class="p-4"
-          :pane="{ title: 'Select Objects' }"
+          :pane="{ title: 'Controller' }"
           @on-pane-created="onPaneCreated"
         />
       </div>
