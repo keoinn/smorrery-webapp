@@ -2,7 +2,13 @@
 import { ref, onMounted, watch, computed, reactive} from "vue";
 import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
 import { fetchCadApi, fetchSbdbApi } from '@/utils/APIRequests/apis/event.js';
+import { parseSmallBodiesData } from "@/utils/APIRequests/preprocessor.js";
 import backgroundmusic from '@/assets/backgroundmusic.wav'
+
+const NEO_AMOUNT = 10;
+const CAD_MIN_DATE = '2024-01-01';
+const CAD_MAX_DATE = '2025-01-01';
+const CAD_MAX_DIST = '0.05';  
 
 let space_scene;
 const target = ref();
@@ -24,13 +30,12 @@ const timeSpeed = ref(1.0);
 const currentDate = ref(946728000000)
 
 // Data Fetch
-const neoData = ref([]);  // from SBDB API response
-const cadData = ref([]);  // from CAD API response
+let neoData;  // from SBDB API response
+let cadData;  // from CAD API response
 
 // 背景音樂播放
 const backgroundMusic = ref(false);
-const isMuted = ref(false);
-
+const isMuted = ref(true);
 
 
 // 畫布啟動關閉 -> 畫面渲染
@@ -80,7 +85,7 @@ const dateShift = (val) => {
 }
 
 watch(timeSpeed, (val) => {
-  console.log(`Speed = ${val}x`); // TEST: log the new speed value
+  // console.log(`Speed = ${val}x`); // TEST: log the new speed value
   space_scene.loop.timeScaleRate = val;
 });
 
@@ -111,20 +116,23 @@ onMounted(() => {
   space_scene = new SpaceScene(target_s);
 });
 
-// onMounted(async () => {
-//   try {
-//     // Use fetchSbdbApi to fetch NEO data
-//     const sbdbResponse = await fetchSbdbApi(200); // Get 200
-//     neoData.value = sbdbResponse.data;
-//     console.log('Fetched data of', neoData.value.data.length, 'NEOs');
+onMounted(async () => {
+  try {
+    // Use fetchSbdbApi to fetch NEO data
+    const sbdbResponse = await fetchSbdbApi(NEO_AMOUNT); // Get 200
+    console.log('Fetched data:', sbdbResponse.data.data.length, 'NEOs.');
+    neoData = sbdbResponse.data; 
 
-//     // Use fetchCadApi to fetch Close-Aproach Data
-//     const date_min = '2024-01-01';
-//     const date_max = '2025-01-01';
-//     const dist_max = '0.05';        // in AU
-//     const cadResponse = await fetchCadApi(date_min, date_max, dist_max);
-//     cadData.value = cadResponse.data;
-//     console.log('Fetched data of', cadData.value.data.length, 'Close-Approach events');
+    let smallBodiesData = parseSmallBodiesData(neoData);
+    console.log(smallBodiesData);
+    space_scene.generateObjects(smallBodiesData);
+
+    // Use fetchCadApi to fetch Close-Aproach Data      // in AU
+    const cadResponse = await fetchCadApi(CAD_MIN_DATE, CAD_MAX_DATE, CAD_MAX_DIST);
+    console.log('Fetched data:', cadResponse.data.data.length, 'close-approach events.');
+    cadData = cadResponse.data;
+
+    console.log(neoData);
 
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -136,6 +144,7 @@ onMounted(() => {
 
   backgroundMusic.value.muted = isMuted.value;
 });
+
 
 
 </script>

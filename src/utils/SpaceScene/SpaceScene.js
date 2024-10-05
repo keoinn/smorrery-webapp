@@ -22,23 +22,23 @@ class SpaceScene extends EmptyScene {
     // Celestial objects
     const sun = new CelestialBody(this.scene, SUN_DATA, SSS_TEXTURES);
     this.scene.add(sun.container);
-    console.log(sun);
+    console.log('Created', sun.name);
 
-    this.smallBodies = []; // TO DO: INSERT SMALL BODY DATA
+    this.generateObjects(PLANETS_DATA);
 
-    this.orbitingObjectsData = PLANETS_DATA //[...PLANETS_DATA, ...this.smallBodies]; <-- TEST
-    this.orbitingObjectsData.forEach((data) => {
+    // const resizer = new Resizer(container, this.camera, this.renderer);
+  }
+
+  generateObjects(dataset) {
+    return dataset.forEach((data) => {
       const body = new CelestialBody(this.scene, data, SSS_TEXTURES);
-      console.log(body);
+      console.log('Created', body.name);
       this.scene.add(body.container);
       this.loop.updatables.push(body.container);
 
       CelestialObjects.push(body);
     });
-
-    // console.log(this.orbitingObjects);
-    // const resizer = new Resizer(container, this.camera, this.renderer);
-  }
+  };
 
   clearTrace() {
     CelestialObjects.forEach(body => {
@@ -52,7 +52,7 @@ class SpaceScene extends EmptyScene {
   set OrbitingRecordTrace (flag) {
     const st = (flag === true)? true : false;
     CelestialObjects.forEach(body => {
-      console.log(body.name, body.isTraced, st);  // for debug only  // TO DO: INSERT CELESTIAL OBJECT DATA
+      // console.log(body.name, body.isTraced, st);  // for debug only  // TO DO: INSERT CELESTIAL OBJECT DATA
       body.isTraced = st
       if(!st) {
         body.trace = []
