@@ -9,8 +9,9 @@ export class EmptyTopic {
 
   tick() {}
 
-  onEnter(scene) {
+  onEnter(scene, camera) {
     this.scene = scene;
+    this.camera = camera;
   }
 
   onExit() {}

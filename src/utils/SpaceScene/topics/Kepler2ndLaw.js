@@ -25,8 +25,8 @@ export class Kepler2ndLaw extends EmptyTopic {
     this.currentObject = null;
   }
 
-  onEnter(scene) {
-    super.onEnter(scene);
+  onEnter(scene, camera) {
+    super.onEnter(scene, camera);
     this.sweptAreaGroup.clear();
     this.scene.add(this.sweptAreaGroup);
   }

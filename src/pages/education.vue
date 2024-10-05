@@ -26,7 +26,7 @@ const currentTopic = computed(() => {
 
 const currentTopicPros = computed(() => {
   const topic = topicController.value.getCurrentTopic();
-  if (topic) {
+  if (topic && topic.pros) {
     return topic.pros.value;
   } else {
     return null;
@@ -71,6 +71,7 @@ topicController.value.onTopicChange = (newTopic) => {
 // 3. adjust css to avoid overlapping
 // 4. remove toggle isMultiSelect button
 // 5. user can adjust width of the article
+// 6. add time control at bottom
 onMounted(() => {
   education_scene = new EducationScene(target.value);
 
