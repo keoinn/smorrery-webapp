@@ -136,7 +136,7 @@ function toggleMultiSelect() {
 <style scoped>
 .education-container {
   display: flex;
-  height: 100vh;
+  height: calc(100vh - 50px);
 }
 
 .topic-panel {

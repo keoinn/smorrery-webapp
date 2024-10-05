@@ -176,6 +176,7 @@ onMounted(() => {
 
 <style lang="scss">
 #target {
+  height: calc(100vh - 50px);
   #info {
     position: absolute;
     top: 10%;
