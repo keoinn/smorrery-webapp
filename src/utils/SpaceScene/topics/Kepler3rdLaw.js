@@ -10,6 +10,7 @@ export class Kepler3rdLaw extends EmptyTopic {
   }
 
   onObjectChange(addedObjects, removedObjects) {
+    super.onObjectChange(addedObjects, removedObjects);
     this.currentObjects = [
       ...this.currentObjects,
       ...addedObjects.filter(

@@ -20,7 +20,7 @@ const topics = ref([
 
 const topicController = ref(new TopicController(topics.value));
 const tweakpaneState = ref({
-  selectedBodies: [],
+  selectedBodies: ["Mercury"],
 });
 
 const onPaneCreated = (_pane) => {
@@ -130,6 +130,7 @@ topicController.value.onTopicChange = (newTopic) => {
 // 5. user can adjust width of the article
 // 6. add time control at bottom
 // 7. select topic from defined property
+// 8. add button to toggle article
 onMounted(() => {
   education_scene = new EducationScene(target.value);
 
@@ -173,7 +174,7 @@ onMounted(() => {
 <style scoped>
 .education-container {
   display: flex;
-  height: calc(100vh - 50px);
+  height: 100vh;
 }
 
 .topic-panel {
@@ -181,6 +182,7 @@ onMounted(() => {
   padding: 20px;
   overflow-y: auto;
   border-right: 1px solid #ccc;
+  padding-top: 120px;
 }
 
 .scene-panel {
@@ -195,7 +197,7 @@ onMounted(() => {
 
 .tweakpane-container {
   position: absolute;
-  top: 40px;
+  top: 80px;
   right: 10px;
   z-index: 10;
 }
