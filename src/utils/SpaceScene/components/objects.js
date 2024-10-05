@@ -2,6 +2,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
+  MeshPhongMaterial,
   SphereGeometry,
   TextureLoader,
   BackSide,
@@ -14,30 +15,70 @@ import {
   LineBasicMaterial,
   BufferGeometry,
   Line,
+  Euler
 } from "three";
 
 import {
-  SUN_INFO,
-  planets_const,
+  SUN_DATA,
+  PLANETS_DATA,
   SSS_TEXTURES,
   J2000,
-  radiusScale,
-  spaceScale,
+  RADIUS_SCALE,
+  SPACE_SCALE,
   MAX_TRACE_STEPS,
-} from "@/utils/SpaceScene/utils/smorrery_const.js";
-import {
-  updateMeanAnomaly,
-  calcEccentricAnomaly,
-  calcTrueAnomaly,
-  calcRadialDistance,
-  polarToCartesian3D,
-  calcOrbitalPeroid,
-  calcPosition,
-} from "@/utils/SpaceScene/utils/calculator.js";
+} from "@/utils/SpaceScene/utils/constants.js";
 
-function createMaterial(texture_img, type = "planets") {
-  const textureLoader = new TextureLoader();
-  const texture = textureLoader.load(texture_img);
+import { calcOrbitalPeroid, calcPosition } from "@/utils/SpaceScene/utils/calculator.js";
+
+
+const backgroundRadius = 1200;
+const backgroundTexturePath = SSS_TEXTURES["MILKY_WAY"];
+const sunTexture = SSS_TEXTURES['SUN'];
+
+function selectMaterial(texturesPath, category, altColor = 0xffffff) { 
+  const texture = texturesPath ? new TextureLoader().load(texturesPath) : null;
+  let material;
+
+  if (category === 'planet' ) { // No texture for small bodies
+    material = new MeshStandardMaterial({
+      map: texture,
+      roughness: 0.9,
+    });
+  } else if (category === 'sun') { // Self-illumination for stars (e.g., Sun)
+    material = new MeshStandardMaterial({
+      map: texture,              
+      roughness: 0,
+      metalness: 0,
+      emissive: 0xffff00,     // Strong Self-illumination
+      emissiveIntensity: 1.0,     
+      emissiveMap: texture        
+    });
+  } else if (category === 'background') { // Self-illumination for backgrounds
+    material = new MeshStandardMaterial({
+      map: texture,    
+      roughness: 0,
+      metalness: 0,
+      side: BackSide,
+      emissive: 0x404040,     // Weak Self-illumination
+      emissiveIntensity: 0.5,     
+      emissiveMap: texture        
+    }); 
+  } else {
+    material = new MeshStandardMaterial({
+      color: altColor,
+      roughness: 0.5,
+      metalness: 0,
+      emissive: 0x000000 
+    });
+  }
+
+  // Create and return the material with the final options
+  return material;
+}
+
+
+function createMaterial(texturePath, type = "planets") {
+  const texture = new TextureLoader().load(texturePath);
   let material;
 
   if (type == "background") {
@@ -71,21 +112,32 @@ function createMaterial(texture_img, type = "planets") {
   return material;
 }
 
-function createBackgroundSphere() {
-  const geometry = new SphereGeometry(1200, 60, 40);
-  const material = createMaterial(SSS_TEXTURES["MILKY_WAY"], "background");
-  const BackgroundSphere = new Mesh(geometry, material);
+/**
+ * Create a spherical background with a texture. 
+ * The radius (`backgroundRadius`) and texture path (`backgroundTexturePath`) are specified as global constants.
+ * This function applies galactic-to-ecliptic rotation sto the background sphere.
+ * 
+ * @see https://threejs.org/docs/#api/en/geometries/SphereGeometry
+ */
+function createBackground() {
+  console.log(`Background radius is ${backgroundRadius}`);
 
-  return BackgroundSphere;
+  const geometry = new SphereGeometry(backgroundRadius, 60, 40);
+  const material = selectMaterial(backgroundTexturePath, "background");
+  const backgroundSphere = new Mesh(geometry, material);
+  
+  // Apply Galactic-to-Ecliptic Rotations
+  const eulerAngles = new Euler(62.87 / 180 * Math.PI, 0, -282.86 / 180 * Math.PI);
+  backgroundSphere.quaternion.setFromEuler(eulerAngles);
+
+  return backgroundSphere;
 }
 
 function createSun() {
-  const geometry = new SphereGeometry(SUN_INFO.radius * radiusScale, 32, 32);
-  const material = createMaterial(SSS_TEXTURES["SUN"]);
+  const geometry = new SphereGeometry(SUN_DATA.radius * RADIUS_SCALE, 32, 32);
+  const material = selectMaterial(sunTexture, 'sun');
 
   const sun = new Mesh(geometry, material);
-  sun.castShadow = false;
-  sun.receiveShadow = true;
 
   return sun;
 }
@@ -101,47 +153,35 @@ function createTraceLine(obj) {
 }
 
 function createOrbitingObject(obj) {
-  // 物體幾何
-  const geometry = new SphereGeometry(obj.radius * radiusScale, 32, 32);
-  const material = createMaterial(
-    SSS_TEXTURES[obj.name.toUpperCase()],
-    "orbit"
-  );
+  const { name, radius, orbitalElements, category } = obj;
 
-  const orbit_container = new Object3D();
-  const orbit = new Mesh(geometry, material);
-  orbit.castShadow = false;
-  orbit.receiveShadow = true;
+  const geometry = new SphereGeometry(radius * RADIUS_SCALE, 32, 32);
+  const material = selectMaterial(SSS_TEXTURES[name.toUpperCase()], category);
 
-  orbit_container.add(orbit);
+  const container = new Object3D();
+  const mesh = new Mesh(geometry, material);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
 
-  if (obj.name.toUpperCase() === "SATURN") {
-    createRing(obj.radius, 1.24, 2.27, orbit_container);
-  }
+  container.add(mesh);
 
-  // 起始位置
-  obj.T = calcOrbitalPeroid(obj.a);
+  obj.period = calcOrbitalPeroid(obj.orbitalElements.a);
   obj.isTrace = false;
   obj.trace = [];
   obj.traceLine = createTraceLine(obj);
 
-  /* BEING CONST SITE */
-  const { a, e, i, om, varpi, ma } = obj;
-  const orbitalElements = { a, e, i, om, varpi, ma };
-  const period = obj.T;
-  // Goals: 
-  // const {radius, period, orbitalElements, container, label} = object;
-  // const {a, e, i, om, varpi, ma} = orbitalElements;
-  /* END CONST SITE */
+  if (name.toUpperCase() === "SATURN") {
+    createRing(radius, 1.24, 2.27, container);
+  }
 
   // Place the container at its initial position
-  const initPosition = calcPosition(0, orbitalElements, spaceScale);
-  orbit_container.position.copy(initPosition);
+  const initPosition = calcPosition(0, orbitalElements, obj.period, SPACE_SCALE);
+  container.position.copy(initPosition);
 
   // Update the container's position for the next frame
-  orbit_container.tick = (delta, scene) => {
-    const newPosition = calcPosition(delta, orbitalElements, spaceScale);
-    orbit_container.position.copy(newPosition);
+  container.tick = (delta, scene) => {
+    const newPosition = calcPosition(delta, orbitalElements, obj.period, SPACE_SCALE);
+    container.position.copy(newPosition);
 
     // Add a new position to the trace if the object has tracing enabled
     if ( obj.isTrace ) {
@@ -159,13 +199,13 @@ function createOrbitingObject(obj) {
     }
   };
 
-  return orbit_container;
+  return container;
 }
 
 const createRing = (radius, innerScale, outerScale, container) => {
   // 創建土星環的幾何體
-  const innerRadius = radius * innerScale * radiusScale;
-  const outerRadius = radius * outerScale * radiusScale;
+  const innerRadius = radius * innerScale * RADIUS_SCALE;
+  const outerRadius = radius * outerScale * RADIUS_SCALE;
 
   const ringGeometry = new RingGeometry(innerRadius, outerRadius, 64);
   // 紋理座標定位
@@ -177,8 +217,7 @@ const createRing = (radius, innerScale, outerScale, container) => {
   }
 
   // 創建土星環材質
-  const textureLoader = new TextureLoader();
-  const ringTexture = textureLoader.load(SSS_TEXTURES["SATURN_RING"]);
+  const ringTexture = new TextureLoader().load(SSS_TEXTURES["SATURN_RING"]);
   //需要光線呈現改用 MeshStandardMaterial 建立材質
   const ringMaterial = new MeshBasicMaterial({
     map: ringTexture,
@@ -197,4 +236,4 @@ const createRing = (radius, innerScale, outerScale, container) => {
   container.add(saturnRing);
 };
 
-export { createBackgroundSphere, createSun, createOrbitingObject, createRing };
+export { createBackground, createSun, createOrbitingObject, createRing };

@@ -14,7 +14,7 @@
     "chart.js": "^4.4.4",
     "core-js": "^3.37.1",
     "roboto-fontface": "*",
-    "three": "^0.169.0",
+    "three": "^0.128.0",
     "tweakpane": "^4.0.4",
     "v-tweakpane": "^0.3.2",
     "vue": "^3.4.31",
