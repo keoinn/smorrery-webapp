@@ -1,28 +1,34 @@
-import { createLights } from "./components/lights.js";
 import {
-  createBackgroundSphere,
   createSun,
   createOrbitingObject,
+  createBackground,
 } from "./components/objects.js";
 
-import { planets_const } from "@/utils/SpaceScene/utils/smorrery_const.js";
 import { EmptyScene } from "./EmptyScene.js";
+import { createLightSource } from "./components/light.js";
+import { PLANETS_DATA } from "./utils/constants.js";
 
 //TODO: add camera movement
 class EducationScene extends EmptyScene {
   constructor(container) {
     super(container);
 
-    const { ambientLight, sunLight } = createLights();
-    // 背景
-    const backgroundSphere = createBackgroundSphere();
-    this.scene.add(ambientLight, backgroundSphere);
-    // 物件
+    // Stage props for the scene
+    const backgroundSphere = createBackground();
+    const sunLight = createLightSource("sun");
+    const backgroundLight = createLightSource("ambient");
+
+    [sunLight, backgroundLight, backgroundSphere].forEach((stageProp) => {
+      this.scene.add(stageProp);
+    });
+
+    // Celestial objects
     const sun = createSun();
+    this.scene.add(sun);
 
     this.smallBodies = [];
     // 行星
-    this.orbitingObjects = [...planets_const, ...this.smallBodies];
+    this.orbitingObjects = [...PLANETS_DATA, ...this.smallBodies];
 
     // group by category
     this.availableObjects = {};
@@ -35,10 +41,6 @@ class EducationScene extends EmptyScene {
 
     // all 3D objects in scene
     this.objects3d = [];
-
-    this.scene.add(sun);
-    this.scene.add(ambientLight);
-    this.scene.add(sunLight);
 
     this.customTickFunctions = [];
 

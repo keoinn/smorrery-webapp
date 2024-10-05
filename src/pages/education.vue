@@ -152,7 +152,7 @@ onMounted(() => {
       <div class="tweakpane-container">
         <v-tweakpane
           class="p-4"
-          :pane="{ title: 'Folder Example' }"
+          :pane="{ title: 'Select Objects' }"
           @on-pane-created="onPaneCreated"
         />
       </div>
@@ -185,7 +185,7 @@ onMounted(() => {
 
 .tweakpane-container {
   position: absolute;
-  top: 10px;
+  top: 40px;
   right: 10px;
   z-index: 10;
 }

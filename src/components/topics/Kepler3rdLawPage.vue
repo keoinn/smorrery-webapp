@@ -34,7 +34,9 @@ const data = computed(() => {
       fill: false,
       borderColor: color,
       backgroundColor: color,
-      data: [{ x: object.T, y: object.a, text: object.name }],
+      data: [
+        { x: object.period, y: object.orbitalElements.a, text: object.name },
+      ],
     });
   });
   result.datasets.sort((a, b) => a.data[0].y - b.data[0].y);

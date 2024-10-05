@@ -7,9 +7,8 @@ import {
   Mesh,
   MeshBasicMaterial,
 } from "three";
-import { calculateJulianDate } from "../utils/calculator";
-import { J2000 } from "../utils/smorrery_const";
 import { DoubleSide } from "three";
+import { calcYearSinceJ2000 } from "../utils/calculator";
 
 const PHASE_NUMBER = 8;
 
@@ -49,11 +48,9 @@ export class Kepler2ndLaw extends EmptyTopic {
 
   tick(delta, scene, currentDate) {
     if (!this.currentObject) return;
-    const currentJulianDate = calculateJulianDate(currentDate);
-    const yearSinceJ2000 = (currentJulianDate - J2000) / 365.25;
-    //TODO: change this.currentObject.T to this.currentObject.period
+    const yearSinceJ2000 = calcYearSinceJ2000(currentDate);
     let sweptAreaPhase =
-      Math.floor((PHASE_NUMBER * yearSinceJ2000) / this.currentObject.T) %
+      Math.floor((PHASE_NUMBER * yearSinceJ2000) / this.currentObject.period) %
       PHASE_NUMBER;
     if (
       this.previousSweptAreaPhase === PHASE_NUMBER - 1 &&
