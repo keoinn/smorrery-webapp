@@ -1,12 +1,24 @@
 <template>
   <div class="navigation-container">
     <div class="navigation-bar">
-      <div class="navigation-text text-wrapper-1">Education</div>
-      <div class="navigation-text text-wrapper-2">Event</div>
-      <div class="navigation-text text-wrapper-3">Lab</div>
-      <div class="navigation-text text-wrapper-4">Challenge</div>
-      <div class="navigation-text text-wrapper-5">Tour</div>
-      <div class="navigation-text text-wrapper-6">About</div>
+      <div class="navigation-text text-wrapper-1">
+        <span @click="$router.push('/orrery')"> Education </span>
+      </div>
+      <div class="navigation-text text-wrapper-2">
+        <span @click="$router.push('/orrery')"> Event </span>
+      </div>
+      <div class="navigation-text text-wrapper-3">
+        <span @click="$router.push('/orrery')"> Lab </span>
+      </div>
+      <div class="navigation-text text-wrapper-4">
+        <span @click="$router.push('/orrery')"> Challenge </span>
+      </div>
+      <div class="navigation-text text-wrapper-5">
+        <span @click="$router.push('/orrery')"> Tour </span>
+      </div>
+      <div class="navigation-text text-wrapper-6">
+        <span @click="$router.push('/orrery')"> About </span>
+      </div>
     </div>
   </div>
 </template>
@@ -52,7 +64,7 @@
     }
   }
 
-  .text-wrapper-1{
+  .text-wrapper-1 {
     left: 0;
   }
   .text-wrapper-2 {
