@@ -2,6 +2,7 @@
 import { ref, onMounted, watch, computed, reactive} from "vue";
 import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
 import { fetchCadApi, fetchSbdbApi } from '@/utils/APIRequests/apis/event.js';
+import backgroundmusic from '@/assets/backgroundmusic.wav'
 
 let space_scene;
 const target = ref();
@@ -26,14 +27,22 @@ const currentDate = ref(946728000000)
 const neoData = ref([]);  // from SBDB API response
 const cadData = ref([]);  // from CAD API response
 
+// 背景音樂播放
+const backgroundMusic = ref(false);
+const isMuted = ref(false);
+
+
+
 // 畫布啟動關閉 -> 畫面渲染
 const controlStatusScene = () => {
   scene_st.value = !scene_st.value;
+
   if (scene_st.value) {
     space_scene.start();
+    backgroundMusic.value.play();
   } else {
     space_scene.stop();
-  }
+  } 
 };
 
 // Control Bar Action
@@ -92,6 +101,11 @@ const showJDText = (val) => {
   return ((val / 86400000) + 2440587.5).toFixed(2);
 }
 
+const toggleMute = () => {
+  isMuted.value = !isMuted.value;
+  backgroundMusic.value.muted = isMuted.value;
+};
+
 onMounted(() => {
   const target_s = document.querySelector("#target");
   space_scene = new SpaceScene(target_s);
@@ -115,6 +129,12 @@ onMounted(async () => {
   } catch (error) {
     console.error('Error fetching data:', error);
   }
+
+  watch(space_scene.loop.currentDate_ref, (val) => {
+    currentDate.value = val
+  });
+
+  backgroundMusic.value.muted = isMuted.value;
 });
 
 
@@ -188,12 +208,22 @@ onMounted(async () => {
 
       <span class="info-text">{{ showDateString(currentDate) }}</span>
       <span class="info-text"> JD {{ showJDText(currentDate) }}</span>
+
+      <v-btn
+        class="video-btn"
+        :icon="isMuted ? `mdi-volume-off` : `mdi-volume-high`"
+        @click="toggleMute"
+        size="small"
+      />
+      <audio ref="backgroundMusic" :src="backgroundmusic" autoplay loop style="display:none;"></audio>
     </div>
   </div>
 </template>
 
 <style lang="scss">
 #target {
+  // remove 50px from AppHeaderLogo
+  height: calc(100vh - 50px);
   #info {
     position: absolute;
     top: 13%;
