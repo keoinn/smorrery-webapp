@@ -6,9 +6,12 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
+  Triangle,
+  Vector3,
 } from "three";
 import { DoubleSide } from "three";
 import { calcYearSinceJ2000 } from "../utils/calculator";
+import { ref } from "vue"; // 確保導入 ref
 
 const PHASE_NUMBER = 8;
 
@@ -22,6 +25,9 @@ export class Kepler2ndLaw extends EmptyTopic {
     this.previousSweptAreaPhase = null;
     this.sweptAreaGroup = new Group();
     this.currentObject = null;
+    this.tempArea = 0;
+    this.eachArea = {};
+    this.pros = ref({ eachArea: this.eachArea });
   }
 
   onEnter(scene, camera) {
@@ -44,6 +50,7 @@ export class Kepler2ndLaw extends EmptyTopic {
     this.sweptAreaGroup.clear();
     this.previousPoint = null;
     this.previousSweptAreaPhase = null;
+    this.eachArea = {};
   }
 
   tick(delta, scene, currentDate) {
@@ -65,6 +72,11 @@ export class Kepler2ndLaw extends EmptyTopic {
     // Create swept area for the current phase
     if (position) {
       this._createSweptArea(position, sweptAreaPhase);
+      if (this.previousSweptAreaPhase != sweptAreaPhase) {
+        this.eachArea[sweptAreaPhase] = this.tempArea;
+        this.pros.value = { eachArea: this.eachArea };
+        this.tempArea = 0;
+      }
       this.previousSweptAreaPhase = sweptAreaPhase;
     }
   }
@@ -99,6 +111,12 @@ export class Kepler2ndLaw extends EmptyTopic {
     // Define the indices for the triangle (0, 1, 2 correspond to the vertex positions)
     const indices = [0, 1, 2];
     geometry.setIndex(indices);
+    const triangle = new Triangle(
+      this.previousPoint,
+      point,
+      new Vector3(0, 0, 0)
+    );
+    this.tempArea += triangle.getArea();
     const sweptArea = new Mesh(geometry, material);
     this.sweptAreaGroup.add(sweptArea);
     // Add the group to the scene if it's not already there

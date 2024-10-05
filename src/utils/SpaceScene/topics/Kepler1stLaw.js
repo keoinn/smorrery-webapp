@@ -14,7 +14,7 @@ let custom_planet = {
     ma: 174.796,
     epoch: J2000,
   },
-  color: 0xd3d3d3, // LightGray
+  color: 0x00ff00,
   radius: 0.383, // Radius
   mass: 0.055, // Mass relative to Earth
   category: "custom",
@@ -50,7 +50,7 @@ export class Kepler1stLaw extends EmptyTopic {
   // 2. handle e > 1
   // 3. change color
   addPane(_pane) {
-    const pane = _pane.addFolder({ title: "Orbit Elements" });
+    const pane = _pane.addFolder({ title: "Orbital Elements" });
     const data = {
       a: {
         label: "Semi-major Axis (AU)",
@@ -71,19 +71,19 @@ export class Kepler1stLaw extends EmptyTopic {
         step: 1,
       },
       om: {
-        label: "Longitude of Ascending Node (deg)",
+        label: "Longitude of \nAscending Node (deg)",
         min: 0,
         max: 360,
         step: 1,
       },
       w: {
-        label: "Argument of Periapsis (deg)",
+        label: "Argument of \nPeriapsis (deg)",
         min: 0,
         max: 360,
         step: 1,
       },
       ma: {
-        label: "Mean Anomaly at epoch (deg)",
+        label: "Mean Anomaly \nat epoch (deg)",
         min: 0,
         max: 360,
         step: 1,
