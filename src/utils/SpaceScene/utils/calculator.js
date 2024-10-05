@@ -1,4 +1,4 @@
-import { J2000 } from '@/utils/SpaceScene/utils/smorrery_const.js';
+import { J2000, J1970, STD_GRAV_PARAM_SUN } from '@/utils/SpaceScene/utils/constants.js';
 import { Vector3, Matrix4 } from 'three';
 
 // Calculate the Mean Anomaly (M).
@@ -54,7 +54,7 @@ const calcOrbitalPeroid = (a) => {
 };
 
 // Calculate the Orbital Rotation Matrix based on the Orbital Elements.
-const getOrbitalRotationMatrix = (i, Omega, varpi) => {
+const getOrbitalRotationMatrix = (i, Omega, w) => {
   const rotationMatrix = new Matrix4();
 
   // Rotate by Ω (Longitude of Ascending Node) around Y axis
@@ -66,7 +66,7 @@ const getOrbitalRotationMatrix = (i, Omega, varpi) => {
   rotationMatrix.multiply(iMatrix);
 
   // Rotate by ω (Argument of Perihelion) around Y axis (within the orbital plane)
-  const omega = varpi - Omega;  // Calculate ω from ϖ (Longitude of Perihelion)
+  const omega = w - Omega;  // Calculate ω from ϖ (Longitude of Perihelion)
   const omegaMatrix = new Matrix4();
   omegaMatrix.makeRotationY(omega * Math.PI / 180);
   rotationMatrix.multiply(omegaMatrix);
@@ -75,9 +75,8 @@ const getOrbitalRotationMatrix = (i, Omega, varpi) => {
 }
 
 // Calculate the Position Vector based on Orbital Elements and Year Since J2000.
-const calcPosition = (yearSinceJ2000, orbitalElements, spaceScale) => {
-  const { a, e, i, om, varpi, ma } = orbitalElements; 
-  const period = calcOrbitalPeroid(a);
+const calcPosition = (yearSinceJ2000, orbitalElements, period, SPACE_SCALE) => {
+  const { a, e, i, om, w, ma } = orbitalElements; 
 
   // Calculate the Anomalies (angular parameters that defines a position along an orbit)
   const M_ = updateMeanAnomaly(period, ma, yearSinceJ2000);
@@ -90,9 +89,9 @@ const calcPosition = (yearSinceJ2000, orbitalElements, spaceScale) => {
   const position = new Vector3(x_, y_, z_);
 
   // Apply Orbital Rotations and Scaling
-  const rotationMatrix = getOrbitalRotationMatrix(i, om, varpi);
+  const rotationMatrix = getOrbitalRotationMatrix(i, om, w);
   position.applyMatrix4(rotationMatrix);
-  position.multiplyScalar(spaceScale);
+  position.multiplyScalar(SPACE_SCALE);
 
   // Test for Random Postion 
   // const randomX = Math.floor(Math.random() * 51;
@@ -102,30 +101,88 @@ const calcPosition = (yearSinceJ2000, orbitalElements, spaceScale) => {
   return position;
 }
 
-
-
-
-const calculateJulianDate = (date) => {
-  return (date.getTime() / 86400000) + 2440587.5;
+const calcJulianDate = (date) => {
+  return (date.getTime() / 86400000) + J1970;
 }
 
-const getYearSinceJ2000 = (currentJulianDate) => {
+const calcYearSinceJ2000 = (date) => {
+  const currentJulianDate = calcJulianDate(date);
   return (currentJulianDate - J2000) / 365.25;
 }
 
-const calculateJulianDateSinceJ2000 = (date) => {
-  return ((date.getTime() / 86400000) + 2440587.5 - J2000) / 365.25;
+/** 
+ * Determine the Orbital Elements for a given position and velocity.
+ * This is for the LAB MODULE.
+ * @param {Vector3} position - The initial position vector of the orbiting object.
+ * @param {Vector3} velocity - The initial velocity vector of the orbiting object.
+ * @param {number} mu - The standard gravitational parameter of the central object (in AU).
+ * @see https://en.wikipedia.org/wiki/Orbit_determination
+ */
+const determineOrbit = (initPosition, initVelocity, mu, verbose = true) => {
+  const initPosMag = initPosition.length();
+  const initVelMag = initVelocity.length();
+
+   // Calculate Specific Mechanical Energy (ε)
+  const epsilon = initVelMag**2 / 2 - mu / initPosMag;
+
+  // Calculate Semi-major Axis (a)
+  const a = -mu / (2 * epsilon);
+
+  // Calculate Specific Angular Momentum Vector (h)
+  const h_vec = new Vector3().crossVectors(initPosition, initVelocity);
+  
+  // Calculate Eccentricity Vector (e_vec) and Eccentricity (e)
+  const vCrossHByMu = initVelocity.clone().cross(h_vec).divideScalar(S)
+  const e_vec = vCrossHByMu.sub(position.clone().normalize()).multiplyScalar(-1);
+  const e = e_vec.length();
+
+  // Calculate Inclination (i)
+  const i = Math.acos(h_vec.y / h_vec.length()) * (180 / Math.PI);
+
+  // Calculate Longitude of Ascending Node (Ω)
+  let Omega = Math.atan2(h_vec.x, -h_vec.z) * (180 / Math.PI);
+  if (Omega < 0) Omega += 360;
+
+  // Calculate Argument of Perihelion (ω)
+  const n_vec = new THREE.Vector3(h_vec.z, 0, -h_vec.x);  // Node vector
+  const omega = Math.acos(n_vec.dot(e_vec) / (n_vec.length() * e)) * (180 / Math.PI);
+  const w = omega + Omega
+
+  if (verbose) {
+      printQuantity(mu, 'µ', 'AU^3 yr^(-2)');
+      console.log('r0 = ', initPosition, 'AU');
+      printQuantity(initPosMag, '|r0|', 'AU');
+      console.log('v0 = ', initVelocity, 'AU/yr');
+      printQuantity(initVelMag, '|v0|', 'AU/yr');
+      printQuantity(epsilon, 'ε', 'EarthMass AU^2 yr^(-2)');
+      printQuantity(a, 'a', 'AU');
+      console.log('v = ', h_vec);
+      console.log('e = ', e_vec);
+      printQuantity(e, '|e|');
+      printQuantity(i, 'i', '°');
+      printQuantity(Omega, 'Ω', '°');
+      printQuantity(omega, 'ω', '°');
+  }
+
+  return {
+      a: a,
+      e: e,
+      i: i,
+      om: Omega,
+      w: w, 
+      ma: 0, // to be calculated later
+      q: a * (1 - e),
+      Q: a * (1 + e),
+      h_vec: h_vec,
+      e_vec: e_vec, 
+      n_vec: n_vec
+  };
 }
 
 export {
-  updateMeanAnomaly,
-  calcEccentricAnomaly,
-  calcTrueAnomaly,
-  calcRadialDistance,
-  polarToCartesian3D,
-  calcOrbitalPeroid,
-  calculateJulianDate,
-  getYearSinceJ2000,
-  calculateJulianDateSinceJ2000,
-  calcPosition,
+  calcRadialDistance,  // for plotting orbit in the future
+  polarToCartesian3D,  // for plotting orbit in the future
+  calcOrbitalPeroid,  // -> objects.js
+  calcYearSinceJ2000,  // -> loop.js
+  calcPosition,  // -> objects.js
 };

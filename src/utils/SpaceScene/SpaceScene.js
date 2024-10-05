@@ -1,41 +1,45 @@
-import { createLights } from "./components/lights.js";
+import { createLightSource } from "./components/light.js";
 import { Resizer } from "./core/Resizer.js";
 import {
-  createBackgroundSphere,
+  createBackground,
   createSun,
   createOrbitingObject,
 } from "./components/objects.js";
 
-import { planets_const } from "@/utils/SpaceScene/utils/smorrery_const.js";
+import { PLANETS_DATA } from "@/utils/SpaceScene/utils/constants.js";
 import { EmptyScene } from "./EmptyScene.js";
+
+const CelestialObjects = []; // FOR UNIFIED MANAGEMENT  // TO DO: INSERT CELESTIAL OBJECT DATA
 
 class SpaceScene extends EmptyScene {
   constructor(container) {
     super(container);
 
-    const { ambientLight, sunLight } = createLights();
-    // 背景
-    const backgroundSphere = createBackgroundSphere();
-    this.scene.add(ambientLight, backgroundSphere);
-    // 物件
-    const sun = createSun();
+    // Stage props for the scene
+    const backgroundSphere = createBackground();
+    const sunLight = createLightSource('sun');
+    const backgroundLight = createLightSource('ambient');
+    
+    [ sunLight, backgroundLight, backgroundSphere ].forEach(stageProp => {
+      this.scene.add(stageProp);
+    })
 
-    this.smallBodies = [];
-    // 行星
-    this.orbitingObjects = [...planets_const, ...this.smallBodies];
+    // Celestial objects
+    const sun = createSun();
+    this.scene.add(sun);
+
+    this.smallBodies = []; // TO DO: INSERT SMALL BODY DATA
+
+    this.orbitingObjects = [...PLANETS_DATA, ...this.smallBodies];
     this.orbitingObjects.forEach((obj) => {
       obj.container = createOrbitingObject(obj);
       this.loop.updatables.push(obj.container);
       this.scene.add(obj.container);
     });
+    
     console.log(this.orbitingObjects);
 
-    this.scene.add(sun);
-    this.scene.add(ambientLight);
-    this.scene.add(sunLight);
-
     const resizer = new Resizer(container, this.camera, this.renderer);
-
   }
 
   clearTrace() {
@@ -54,7 +58,6 @@ class SpaceScene extends EmptyScene {
       }
     })
   }
-
 }
 
 export { SpaceScene };
