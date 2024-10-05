@@ -14,7 +14,7 @@ const control_st = ref(false);
 const forward_st = ref(true);
 
 // 軌跡
-const isTrace = ref(false);
+const isTraced = ref(false);
 
 // Speed
 const timeSpeed = ref(1.0);
@@ -56,16 +56,16 @@ const forwardControlChange = () => {
   space_scene.clearTrace();
 };
 
-const changeIsTraceStatus = () => {
-  isTrace.value = !isTrace.value;
-  space_scene.OrbitingRecordTrace = isTrace.value;
-  console.log(`Trace status = ${isTrace.value}`); // TEST: log the new trace status value
+const changeisTracedStatus = () => {
+  isTraced.value = !isTraced.value;
+  space_scene.OrbitingRecordTrace = isTraced.value;
+  console.log(`Trace status = ${isTraced.value}`); // <--- TEST
 };
 
 const dateShift = (val) => {
   space_scene.loop.shiftDate = val
-  isTrace.value = false
-  space_scene.OrbitingRecordTrace = isTrace.value;
+  isTraced.value = false
+  space_scene.OrbitingRecordTrace = isTraced.value;
   space_scene.clearTrace();
   
 }
@@ -97,25 +97,25 @@ onMounted(() => {
   space_scene = new SpaceScene(target_s);
 });
 
-onMounted(async () => {
-  try {
-    // Use fetchSbdbApi to fetch NEO data
-    const sbdbResponse = await fetchSbdbApi(200); // Get 200
-    neoData.value = sbdbResponse.data;
-    console.log('Fetched NEO data:', neoData.value.data.length);
+// onMounted(async () => {
+//   try {
+//     // Use fetchSbdbApi to fetch NEO data
+//     const sbdbResponse = await fetchSbdbApi(200); // Get 200
+//     neoData.value = sbdbResponse.data;
+//     console.log('Fetched data of', neoData.value.data.length, 'NEOs');
 
-    // Use fetchCadApi to fetch Close-Aproach Data
-    const date_min = '2024-01-01';
-    const date_max = '2025-01-01';
-    const dist_max = '0.05';        // in AU
-    const cadResponse = await fetchCadApi(date_min, date_max, dist_max);
-    cadData.value = cadResponse.data;
-    console.log('Fetched CAD data:', cadData.value.data.length);
+//     // Use fetchCadApi to fetch Close-Aproach Data
+//     const date_min = '2024-01-01';
+//     const date_max = '2025-01-01';
+//     const dist_max = '0.05';        // in AU
+//     const cadResponse = await fetchCadApi(date_min, date_max, dist_max);
+//     cadData.value = cadResponse.data;
+//     console.log('Fetched data of', cadData.value.data.length, 'Close-Approach events');
 
-  } catch (error) {
-    console.error('Error fetching data:', error);
-  }
-});
+//   } catch (error) {
+//     console.error('Error fetching data:', error);
+//   }
+// });
 
 
 </script>
@@ -150,8 +150,8 @@ onMounted(async () => {
       <v-btn
         class="video-btn text-none"
         :disabled="!scene_st || !control_st"
-        :prepend-icon="isTrace === true ? `mdi-stop-circle` : `mdi-record`"
-        @click="changeIsTraceStatus"
+        :prepend-icon="isTraced === true ? `mdi-stop-circle` : `mdi-record`"
+        @click="changeisTracedStatus"
         text="Trace"
         size="small"
       />
