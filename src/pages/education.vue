@@ -4,13 +4,14 @@ import { EducationScene } from "@/utils/SpaceScene/EducationScene.js";
 import { EmptyTopic } from "@/utils/SpaceScene/topics/EmptyTopic.js";
 import { TopicController } from "@/utils/SpaceScene/topics/TopicController.js";
 import { Kepler2ndLaw } from "@/utils/SpaceScene/topics/Kepler2ndLaw";
+import { Kepler3rdLaw } from "@/utils/SpaceScene/topics/Kepler3rdLaw";
 
 const target = ref();
 const selectedCelestialBodies = ref([]);
 const celestialBodies = ref([]);
 let education_scene;
 const isMultiSelect = ref(true);
-const topics = ref([new Kepler2ndLaw()]);
+const topics = ref([new Kepler2ndLaw(), new Kepler3rdLaw()]);
 
 const topicController = ref(new TopicController(topics.value));
 
@@ -20,6 +21,15 @@ const currentTopic = computed(() => {
     return topic;
   } else {
     return new EmptyTopic("", null);
+  }
+});
+
+const currentTopicPros = computed(() => {
+  const topic = topicController.value.getCurrentTopic();
+  if (topic) {
+    return topic.pros.value;
+  } else {
+    return null;
   }
 });
 
@@ -60,6 +70,7 @@ topicController.value.onTopicChange = (newTopic) => {
 // 2. add topics to navbar
 // 3. adjust css to avoid overlapping
 // 4. remove toggle isMultiSelect button
+// 5. user can adjust width of the article
 onMounted(() => {
   education_scene = new EducationScene(target.value);
 
@@ -98,6 +109,7 @@ function toggleMultiSelect() {
       <component
         :is="currentTopic.content"
         v-if="currentTopic.content"
+        :pros="currentTopicPros"
       ></component>
     </div>
     <div class="scene-panel">

@@ -4,6 +4,7 @@ export class EmptyTopic {
     this.content = shallowRef(contentComponent);
     this.multiSelect = multiSelect;
     this.scene = null;
+    this.pros = null;
   }
 
   tick() {}
