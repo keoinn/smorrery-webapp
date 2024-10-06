@@ -17,7 +17,7 @@ const topics = ref([
   new Kepler3rdLaw(),
   new Kepler1stLaw(),
 ]);
-
+const searchKeyword = ref("");
 const topicController = ref(new TopicController(topics.value));
 const tweakpaneState = ref({
   selectedBodies: ["Mercury"],
@@ -54,6 +54,8 @@ const onPaneCreated = (_pane) => {
       container.appendChild(_pane.element);
     }
     const pane = _pane.addFolder({ title: "Select Objects" });
+    pane.addBinding(searchKeyword, "value", { label: "Search" });
+
     if (isMultiSelect.value) {
       Object.keys(celestialBodies.value).forEach((category, index) => {
         const tab = pane.addFolder({
@@ -62,7 +64,20 @@ const onPaneCreated = (_pane) => {
         const params = {};
         celestialBodies.value[category].forEach((name) => {
           params[name] = name === "Mercury";
-          tab.addBinding(params, name).on("change", (ev) => {
+          const binding = tab.addBinding(params, name);
+
+          watch(searchKeyword, (newKeyword) => {
+            if (
+              newKeyword &&
+              !name.toLowerCase().includes(newKeyword.toLowerCase())
+            ) {
+              binding.hidden = true;
+            } else {
+              binding.hidden = false;
+            }
+          });
+
+          binding.on("change", (ev) => {
             if (
               ev.value &&
               !tweakpaneState.value.selectedBodies.includes(name)
@@ -98,22 +113,12 @@ const onPaneCreated = (_pane) => {
 };
 
 const currentTopic = computed(() => {
-  const topic = topicController.value.getCurrentTopic();
-  if (topic) {
-    return topic;
-  } else {
-    return new EmptyTopic("", null);
-  }
+  return topicController.value.getCurrentTopic() ?? new EmptyTopic("", null);
 });
 
-const currentTopicPros = computed(() => {
-  const topic = topicController.value.getCurrentTopic();
-  if (topic && topic.pros) {
-    return topic.pros.value;
-  } else {
-    return null;
-  }
-});
+const currentTopicPros = computed(
+  () => topicController.value.getCurrentTopic()?.pros?.value ?? null
+);
 let oldValue = [];
 function handlePaneChaned(changed) {
   const newValue = changed.selectedBodies;
@@ -154,6 +159,8 @@ topicController.value.onTopicChange = (newTopic) => {
 // 6. add time control at bottom
 // 7. select topic from defined property
 // 8. add button to toggle article
+// 9. add default object selection to topic
+// 10. handle too many objects
 onMounted(() => {
   education_scene = new EducationScene(target.value);
 
@@ -165,7 +172,7 @@ onMounted(() => {
   });
 
   education_scene.start();
-  topicController.value.setTopic(topics.value[0], education_scene);
+  topicController.value.setTopic(topics.value[2], education_scene);
   celestialBodies.value = education_scene.availableObjects;
   watch(tweakpaneState.value, handlePaneChaned);
 });
