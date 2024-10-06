@@ -130,6 +130,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { fetchCADApi } from '@/utils/APIRequests/apis/event.js';
+import { cos } from 'three/webgpu';
 const searchQuery = ref('');
 const neoObjects = ref([]);
 const neoDataByDate = ref({});
@@ -324,6 +325,7 @@ const generateTimeline = () => {
 // 選擇事件
 const selectEvent = (item) => {
   const event = neoObjects.value.find((selectedEvent) => selectedEvent.des === item.name);
+
   if (event) {
     selectedEvent.value = event;
     drawEventComparison(event.dist_min, event.dist_max);
@@ -397,7 +399,7 @@ const onDateSelect = (date) => {
 
 onMounted(async () => {
   try {
-    const NEO_data = await fetchCADApi('2024-10-10', '2024-10-30', 0.05);
+    const NEO_data = await fetchCADApi('2000-10-10', '2100-10-10', 0.05);
     processData(NEO_data.data);
     generateTimeline();
     scrollToCentralDate(currentDate.value);
