@@ -73,6 +73,7 @@ const toggleTraces = () => {
 // Toggle visibility of labels
 function toggleLabels() {
   isLabled.value = !isLabled.value;
+  space_scene.toggleLabels(isLabled.value);
 }
 
 const shiftDateAndClearTraces = (val) => {
