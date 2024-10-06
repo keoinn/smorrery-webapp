@@ -31,6 +31,8 @@ import {
 
 import { calcOrbitalPeroid, calcPosition } from "@/utils/SpaceScene/utils/calculator.js";
 
+const SCENE_SIZE = 1200;
+
 // ----------------------------------------------------------------
 
 function selectMaterial(texturesPath, category, altColor = 0xffffff) { 
@@ -82,7 +84,7 @@ function selectMaterial(texturesPath, category, altColor = 0xffffff) {
  * @see https://threejs.org/docs/#api/en/geometries/SphereGeometry
  */
 function createBackground() {
-  const geometry = new SphereGeometry(1200, 60, 40);
+  const geometry = new SphereGeometry(SCENE_SIZE, 60, 40);
   const material = selectMaterial(SSS_TEXTURES["MILKY_WAY"], "background");
   const backgroundSphere = new Mesh(geometry, material);
   
@@ -112,8 +114,11 @@ class CelestialBody {
    * @param {Object} data - The data object containing properties like name, radius, and orbital elements.
    * @param {Object} [texturePack=SSS_TEXTURES] - Optional texture paths for mapping textures to the celestial body.
    */
-  constructor(scene, data, texturePack = SSS_TEXTURES) {
+  constructor(scene, camera, data, labelRenderer, texturePack = SSS_TEXTURES) {
     this.scene = scene;
+    this.camera = camera;
+    this.labelRenderer = labelRenderer;
+
     this.name = data.name || 'Unnamed';  // The name of the celestial body, default is 'Unnamed'
     this.radius = data.radius || 1;  // The radius of the celestial body, default is 1
     this.orbitalParameters = data.orbitalParameters || {};  // Orbital elements such as semi-major axis and eccentricity
@@ -127,7 +132,8 @@ class CelestialBody {
     this.container = new Object3D(); 
 
     // Create the mesh and label for the celestial body and add them to the container.
-    this.createMeshAndLabel();
+    const mesh = this.createMesh();
+    this.createLabel(mesh);
 
     // If the object is Saturn, add rings.
     if (this.name.toUpperCase() === 'SATURN') {
@@ -148,6 +154,9 @@ class CelestialBody {
       this.container.tick = (delta) => {
         const newPosition = calcPosition(delta, this.orbitalParameters, this.period, SPACE_SCALE);
         this.container.position.copy(newPosition);
+
+        // Update the label's font size and opacity
+        this.updateLabelStyles();
     
         // Add a new position to the trace if the object has tracing enabled
         if ( this.isTraced ) {
@@ -173,50 +182,100 @@ class CelestialBody {
     }
   }
 
-  // OK!!
   /**
-   * Create the 3D body of the celestial object and add it to the scene.
-   * This function generates the geometry and material for the object, applies texture if available,
-   * and adds special features like rings for planets such as Saturn.
+   * Create the 3D mesh of the celestial object and add it to the container.
+   * This method generates the geometry and material for the celestial body,
+   * applies textures if available, and configures its position and shadow properties.
    * 
    * - For small bodies or objects without textures, a basic color is used.
-   * - If the object is the Sun, emissive properties are applied to simulate self-illumination.
-   * - If the object is Saturn, rings are added with specific dimensions.
+   * - Random positioning is applied if specified and the object is not the Sun.
+   * - The mesh is cast to cast and receive shadows.
+   * 
+   * @param {boolean} randomPosition - If true, applies a random position to the object (except for the Sun).
+   * @returns {THREE.Mesh} The created mesh for the celestial body.
    * 
    * @see https://threejs.org/docs/#api/en/geometries/SphereGeometry
    * @see https://threejs.org/docs/#api/en/materials/MeshStandardMaterial
    */
-  createMeshAndLabel() {
-      const geometry = new SphereGeometry(this.radius * RADIUS_SCALE, 32, 32);
-      const material = selectMaterial(this.texturePath, this.category, this.color)
-
-      // Create the mesh and add it to the scene
-      const mesh = new Mesh(geometry, material);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-
-      // Test for Random Postion 
-      // if (this.name != 'Sun') {
-      //   const randomX = Math.floor(Math.random() * 51) - 25;
-      //   const randomZ = Math.floor(Math.random() * 51) - 25;
-      //   mesh.position.set(randomX, 0, randomZ);
-      // }
-
-      // Add a label to the object
-      const labelDiv = document.createElement('div');
-      labelDiv.className = 'label';
-      labelDiv.textContent = this.name;
-
-      const label = new CSS2DObject(labelDiv);
-      label.position.set(0, this.radius + 0.5, 0);
-      label.visible = true;
-      mesh.add(label);
-
-      this.container.add(mesh);
-      this.container.add(label);
+  createMesh(randomPosition = false) {
+    const geometry = new SphereGeometry(this.radius * RADIUS_SCALE, 32, 32);
+    const material = selectMaterial(this.texturePath, this.category, this.color);
+  
+    // Create the mesh and configure shadows
+    const mesh = new Mesh(geometry, material);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+  
+    // Set random position if needed
+    if (randomPosition && this.name.toUpperCase() !== 'SUN') {
+      const randomX = Math.floor(Math.random() * 51) - 25;
+      const randomZ = Math.floor(Math.random() * 51) - 25;
+      mesh.position.set(randomX, 0, randomZ);
+    }
+  
+    // Add the mesh to the container
+    this.container.add(mesh);
+  
+    // Return the mesh for further use
+    return mesh;
   }
   
-  // OK!!
+  /**
+   * Create a 2D label for the celestial object and attach it to the mesh.
+   * This method generates a label using v-card for displaying the name of the object.
+   * The label is positioned above the celestial body and updated dynamically.
+   * 
+   * - The label is rendered as a CSS2DObject and is linked to the mesh.
+   * - The label is styled using Vuetify's v-card component.
+   * 
+   * @param {THREE.Mesh} mesh - The mesh to which the label will be attached.
+   * 
+   * @see https://threejs.org/docs/#examples/en/renderers/CSS2DObject
+   */
+  createLabel(mesh) {
+    // Create the label using v-card
+    const labelDiv = document.createElement('div');
+    labelDiv.className = 'label';
+    labelDiv.innerHTML = `
+      <v-card class="pa-2" outlined>
+        <v-card-text>${this.name}</v-card-text>
+      </v-card>
+    `;
+  
+    // Create CSS2DObject for the label
+    const label = new CSS2DObject(labelDiv);
+    label.position.set(
+      0, 
+      (this.radius * RADIUS_SCALE) + 0.5, 
+      0
+    );
+  
+    // Attach the label to the mesh
+    mesh.add(label);
+    this.container.add(label);
+  
+    // Save references for dynamic updates
+    this.labelDiv = labelDiv;
+    this.label = label;
+  }
+  
+  /**
+     * Update the label's style based on the distance between the celestial body and the camera.
+     * The **font size** and **opacity** will be adjusted dynamically based on this distance.
+     * 
+     * The closer the celestial body is to the camera, the larger and less transparent the label becomes.
+     * The farther away the body is, the smaller and more transparent the label will be.
+     */
+  updateLabelStyles() {
+    const distance = this.camera.position.distanceTo(this.container.position);
+    const fontSize = Math.max(10, SCENE_SIZE / distance * 0.5);  // closer = larger font
+    const opacity = Math.min(1, Math.max(0.1, SCENE_SIZE / distance));  // farther = more transparent
+
+    // Apply the updated styles to the label
+    this.labelDiv.style.fontSize = `${fontSize}px`;
+    this.labelDiv.style.opacity = `${opacity}`;
+  }
+
   createTraceLine() {
       const traceGeometry = new BufferGeometry().setFromPoints(this.trace);
       const traceMaterial = new LineBasicMaterial({
@@ -227,7 +286,6 @@ class CelestialBody {
       return new Line(traceGeometry, traceMaterial);
   }
   
-  // OK!!
   /**
    * Create a ring around the celestial object and add it to the scene.
    * This function generates a ring with specified inner and outer radii, applies a texture, and adds it
@@ -416,6 +474,7 @@ class CelestialBody {
     // Otherwise, just create the orbit (default behavior for planets, moons, etc.)
     else { 
         this.orbit = this.createOrbit(100, true);
+        this.label.visible = true;
     }
   }
 }

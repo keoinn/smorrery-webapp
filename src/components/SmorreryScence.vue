@@ -132,7 +132,7 @@ onMounted(async () => {
     console.log('Fetched data:', cadResponse.data.data.length, 'close-approach events.');
     cadData = cadResponse.data;
 
-    console.log(neoData);
+    // console.log(neoData);
 
   } catch (error) {
     console.error('Error fetching data:', error);
@@ -152,7 +152,7 @@ onMounted(async () => {
 <template>
   <div id="target" ref="target">
     <div id="info">
-      Interactive 3D Orrery<br />Drag to rotate, scroll to zoom
+      <!-- Interactive 3D Orrery<br />Drag to rotate, scroll to zoom -->
     </div>
     <div id="timeControl">
       <v-btn

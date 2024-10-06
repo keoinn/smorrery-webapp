@@ -39,7 +39,7 @@ export class Kepler1stLaw extends EmptyTopic {
     super.onEnter(scene, camera, loop);
     // camera.position.set(0, 0, 100);
 
-    this.orbitingObject = new CelestialBody(this.scene, custom_planet);
+    this.orbitingObject = new CelestialBody(this.scene, this.camera, custom_planet);
     this.scene.add(this.orbitingObject.container);
     this.loop.updatables.push(this.orbitingObject.container);
     this.orbitingObject.isTraced = true;

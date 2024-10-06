@@ -16,13 +16,14 @@ class EmptyScene {
     
     this.scene = createScene();
     this.renderer = createRenderer(this.container_width, this.container_height);
-    this.labelRender = createLabelRenderer(this.container_width, this.container_height);
+    this.labelRenderer = createLabelRenderer(this.container_width, this.container_height);
     this.camera = createCamera(this.container_width, this.container_height);
     this.currentDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));
     this.loop = new Loop(
       this.camera,
       this.scene,
       this.renderer,
+      this.labelRenderer,
       this.timeScale,
       this.currentDate,
       this.timeDirection,
@@ -30,16 +31,17 @@ class EmptyScene {
 
     // 添加畫布
     container.append(this.renderer.domElement);
-    container.append(this.labelRender.domElement);
+    container.append(this.labelRenderer.domElement);
 
     // 畫面控制器
-    const controls = createControls(this.camera, this.labelRender.domElement);
+    const controls = createControls(this.camera, this.labelRenderer.domElement);
     this.loop.updatables.push(controls);
   }
 
+  // Manual control of single-frame rendering of the scene; temporarily unused
   render() {
-    // draw a single frame
     this.renderer.render(this.scene, this.camera);
+    this.labelRenderer.render(this.scene, this.camera);
   }
 
   start() {

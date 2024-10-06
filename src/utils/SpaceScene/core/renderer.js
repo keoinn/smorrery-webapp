@@ -3,7 +3,8 @@ import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer.js";
 
 function createRenderer(width, height) {
   const renderer = new WebGLRenderer({ antialias: true });
-  // Config for renderer
+
+  // Config for WebGLRenderer
   renderer.setSize(width, height);
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = PCFSoftShadowMap;
@@ -13,7 +14,8 @@ function createRenderer(width, height) {
 
 function createLabelRenderer(width, height) {
   const labelRenderer = new CSS2DRenderer()
-  // config for css2renderer
+
+  // config for CSS2DRenderer
   labelRenderer.setSize(width, height)
   labelRenderer.domElement.style.position = 'absolute';
   labelRenderer.domElement.style.top = '0px';
