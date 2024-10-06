@@ -47,7 +47,92 @@ const showFixedSpeedVal = (val) => {
   return parseFloat(val);
 };
 
+const paneInstance = ref(null);
+
+const recreatePaneBindings = () => {
+  if (paneInstance.value) {
+    const pane = paneInstance.value;
+    pane.children.forEach((child) => {
+      if (child.title === "Select Objects") {
+        pane.remove(child);
+      }
+    });
+
+    const newPane = pane.addFolder({ title: "Select Objects" });
+    newPane.addBinding(searchKeyword, "value", { label: "Search" });
+
+    if (isMultiSelect.value) {
+      let openTab = null;
+      Object.keys(celestialBodies.value).forEach((category, index) => {
+        const tab = newPane.addFolder({
+          title: category,
+          expanded: index === 0, // 預設開啟第一個標籤頁
+        });
+        tab.on("fold", (ev) => {
+          if (ev.expanded && openTab && openTab !== tab) {
+            openTab.expanded = false;
+          }
+          if (ev.expanded) {
+            openTab = tab;
+          }
+        });
+
+        if (index === 0) {
+          openTab = tab; // 設置第一個標籤頁為當前開啟的標籤頁
+        }
+
+        tab.element.style.width = "250px";
+
+        const params = {};
+        celestialBodies.value[category].forEach((name) => {
+          params[name] = tweakpaneState.value.selectedBodies.includes(name);
+          const binding = tab.addBinding(params, name);
+
+          binding.element.style.width = "100%";
+
+          watch(searchKeyword, (newKeyword) => {
+            if (
+              newKeyword &&
+              !name.toLowerCase().includes(newKeyword.toLowerCase())
+            ) {
+              binding.hidden = true;
+            } else {
+              binding.hidden = false;
+            }
+          });
+
+          binding.on("change", (ev) => {
+            if (
+              ev.value &&
+              !tweakpaneState.value.selectedBodies.includes(name)
+            ) {
+              tweakpaneState.value.selectedBodies.push(name);
+            } else if (!ev.value) {
+              tweakpaneState.value.selectedBodies =
+                tweakpaneState.value.selectedBodies.filter((b) => b !== name);
+            }
+          });
+        });
+      });
+    } else {
+      const params = { selection: "Mercury" };
+      const options = {};
+      Object.keys(celestialBodies.value).forEach((category) => {
+        celestialBodies.value[category].forEach((name) => {
+          options[name] = name;
+        });
+      });
+      newPane
+        .addBinding(params, "selection", { options: options })
+        .on("change", (ev) => {
+          tweakpaneState.value.selectedBodies = [ev.value];
+        });
+    }
+  }
+};
+
 const onPaneCreated = (_pane) => {
+  paneInstance.value = _pane;
   nextTick(() => {
     const container = document.querySelector(".tweakpane-container");
     if (container && _pane.element.parentElement) {
@@ -57,9 +142,19 @@ const onPaneCreated = (_pane) => {
     pane.addBinding(searchKeyword, "value", { label: "Search" });
 
     if (isMultiSelect.value) {
+      let openTab = null;
       Object.keys(celestialBodies.value).forEach((category, index) => {
         const tab = pane.addFolder({
           title: category,
+          expanded: false,
+        });
+        tab.on("fold", (ev) => {
+          if (ev.expanded && openTab && openTab !== tab) {
+            openTab.expanded = false;
+          }
+          if (ev.expanded) {
+            openTab = tab;
+          }
         });
         const params = {};
         celestialBodies.value[category].forEach((name) => {
@@ -109,6 +204,7 @@ const onPaneCreated = (_pane) => {
     if (currentTopic.value.addPane) {
       currentTopic.value.addPane(_pane);
     }
+    recreatePaneBindings();
   });
 };
 
@@ -181,9 +277,16 @@ onMounted(() => {
   });
 
   education_scene.start();
-  topicController.value.setTopic(topics.value[0], education_scene);
+  topicController.value.setTopic(topics.value[2], education_scene);
   celestialBodies.value = education_scene.availableCategories;
   watch(tweakpaneState.value, handlePaneChaned);
+
+  education_scene.onCategoriesUpdated = (newCategories) => {
+    celestialBodies.value = newCategories;
+    nextTick(() => {
+      recreatePaneBindings();
+    });
+  };
 });
 </script>
 
@@ -300,6 +403,18 @@ onMounted(() => {
 
 :deep(.tp-rotv) {
   min-width: 250px !important;
+}
+
+:deep(.tp-fldv) {
+  min-width: 250px !important;
+}
+
+:deep(.tp-brkv) {
+  width: 100% !important;
+}
+
+:deep(.tp-lblv_v) {
+  width: 120px;
 }
 </style>
 <style>
