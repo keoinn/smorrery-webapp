@@ -1,13 +1,8 @@
-import { createLightSource } from "./components/light.js";
-import { Resizer } from "./core/Resizer.js";
-import {
-  createBackground,
-  createSun,
-  createOrbitingObject,
-} from "./components/objects.js";
-
-import { PLANETS_DATA } from "@/utils/SpaceScene/utils/constants.js";
 import { EmptyScene } from "./EmptyScene.js";
+import { createLightSource } from "./components/light.js";
+import { createBackground, CelestialBody } from "./components/objects.js";
+import { SUN_DATA, PLANETS_DATA, SSS_TEXTURES } from "./utils/constants.js";
+import { Resizer } from "./core/Resizer.js";
 
 const CelestialObjects = []; // FOR UNIFIED MANAGEMENT  // TO DO: INSERT CELESTIAL OBJECT DATA
 
@@ -25,36 +20,42 @@ class SpaceScene extends EmptyScene {
     })
 
     // Celestial objects
-    const sun = createSun();
-    this.scene.add(sun);
+    const sun = new CelestialBody(this.scene, SUN_DATA, SSS_TEXTURES);
+    this.scene.add(sun.container);
+    console.log('Created', sun.name);
 
-    this.smallBodies = []; // TO DO: INSERT SMALL BODY DATA
+    this.generateObjects(PLANETS_DATA);
 
-    this.orbitingObjects = [...PLANETS_DATA, ...this.smallBodies];
-    this.orbitingObjects.forEach((obj) => {
-      obj.container = createOrbitingObject(obj);
-      this.loop.updatables.push(obj.container);
-      this.scene.add(obj.container);
-    });
-    
-    console.log(this.orbitingObjects);
-
-    const resizer = new Resizer(container, this.camera, this.renderer);
+    // const resizer = new Resizer(container, this.camera, this.renderer);
   }
 
+  generateObjects(dataset) {
+    return dataset.forEach((data) => {
+      const body = new CelestialBody(this.scene, data, SSS_TEXTURES);
+      console.log('Created', body.name);
+      this.scene.add(body.container);
+      this.loop.updatables.push(body.container);
+
+      CelestialObjects.push(body);
+    });
+  };
+
   clearTrace() {
-    this.orbitingObjects.forEach(obj => {
-      obj.trace = []
-    })
+    CelestialObjects.forEach(body => {
+      if (body.name.toUpperCase() !== 'SUN') {
+        body.trace = [];  
+      }
+    });
   }
 
   // 天體軌跡記錄啟動
   set OrbitingRecordTrace (flag) {
     const st = (flag === true)? true : false;
-    this.orbitingObjects.forEach(obj => {
-      obj.isTrace = st
+    CelestialObjects.forEach(body => {
+      // console.log(body.name, body.isTraced, st);  // for debug only  // TO DO: INSERT CELESTIAL OBJECT DATA
+      body.isTraced = st
       if(!st) {
-        obj.trace = []
+        body.trace = []
       }
     })
   }

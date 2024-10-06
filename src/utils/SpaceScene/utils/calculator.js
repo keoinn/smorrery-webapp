@@ -75,8 +75,8 @@ const getOrbitalRotationMatrix = (i, Omega, w) => {
 }
 
 // Calculate the Position Vector based on Orbital Elements and Year Since J2000.
-const calcPosition = (yearSinceJ2000, orbitalElements, period, SPACE_SCALE) => {
-  const { a, e, i, om, w, ma } = orbitalElements; 
+const calcPosition = (yearSinceJ2000, orbitalParameters, period, SPACE_SCALE) => {
+  const { a, e, i, om, w, ma } = orbitalParameters; 
 
   // Calculate the Anomalies (angular parameters that defines a position along an orbit)
   const M_ = updateMeanAnomaly(period, ma, yearSinceJ2000);
@@ -92,11 +92,6 @@ const calcPosition = (yearSinceJ2000, orbitalElements, period, SPACE_SCALE) => {
   const rotationMatrix = getOrbitalRotationMatrix(i, om, w);
   position.applyMatrix4(rotationMatrix);
   position.multiplyScalar(SPACE_SCALE);
-
-  // Test for Random Postion 
-  // const randomX = Math.floor(Math.random() * 51;
-  // const randomZ = Math.floor(Math.random() * 51);
-  // const position = new Vector3(randomX, 0, randomZ);
 
   return position;
 }
