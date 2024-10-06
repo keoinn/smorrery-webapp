@@ -23,13 +23,13 @@ class SpaceScene extends EmptyScene {
     this.generateObjects([SUN_DATA]);
     this.generateObjects(PLANETS_DATA);
 
-    // const resizer = new Resizer(container, this.camera, this.renderer);
+    const resizer = new Resizer(container, this.camera, this.renderer);
   }
 
   generateObjects(dataset) {
     return dataset.forEach((data) => {
-      const body = new CelestialBody(this.scene, data);
-      console.log('Created', body.name);
+      const body = new CelestialBody(this.scene, this.camera, data, this.labelRenderer);
+      console.log('Created', body.name); 
       this.scene.add(body.container);
       if (data.name.toUpperCase() !== 'SUN') {
         this.loop.updatables.push(body.container);

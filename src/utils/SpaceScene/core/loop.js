@@ -1,6 +1,6 @@
 import { Clock } from "three";
 import { ref } from 'vue';
-import { RENDER_TIMES } from "@/utils/SpaceScene/utils/constants.js";
+import { RENDER_TIME_THRESHOLD } from "@/utils/SpaceScene/utils/constants.js";
 import { calcYearSinceJ2000 } from "@/utils/SpaceScene/utils/calculator.js";
 // const clock = new Clock();
 const MIN_DATE = new Date(1900, 0, 1);
@@ -10,10 +10,11 @@ let fps_timer = 0
 const clock = new Clock();
 
 class Loop {
-  constructor(camera, scene, renderer, timeScale, currentDate, timeDirection, isPlayed) {
+  constructor(camera, scene, renderer, labelRenderer, timeScale, currentDate, timeDirection, isPlayed) {
     this.camera = camera;
     this.scene = scene;
     this.renderer = renderer;
+    this.labelRenderer = labelRenderer;
     this.updatables = [];
     this.timeScale = timeScale
     this.currentDate = currentDate;
@@ -35,8 +36,10 @@ class Loop {
       fps_timer = fps_timer + delta_times
       
       // render a frame
-      if(fps_timer > RENDER_TIMES) {
+      if(fps_timer > RENDER_TIME_THRESHOLD) {
         this.renderer.render(this.scene, this.camera);
+        this.labelRenderer.render(this.scene, this.camera);
+
         fps_timer = 0
       }
     });

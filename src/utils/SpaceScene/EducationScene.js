@@ -18,12 +18,12 @@ class EducationScene extends EmptyScene {
     });
 
     // Celestial objects
-    const sun = new CelestialBody(this.scene, SUN_DATA);
+    const sun = new CelestialBody(this.scene, this.camera, SUN_DATA);
     this.scene.add(sun.container);
 
     this.orbitingObjects = [];
     PLANETS_DATA.forEach((data) => {
-      const obj = new CelestialBody(this.scene, data, SSS_TEXTURES);
+      const obj = new CelestialBody(this.scene, this.camera, data);
       this.orbitingObjects.push(obj);
     });
 
