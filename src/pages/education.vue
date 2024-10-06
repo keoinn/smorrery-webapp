@@ -284,7 +284,6 @@ topicController.value.onTopicChange = (newTopic) => {
 // 8. add button to toggle article
 // 9. add default object selection to topic
 // 10. handle too many objects
-// 11. handle search bar when isMultiSelect==false
 onMounted(() => {
   education_scene = new EducationScene(target.value);
 
@@ -434,6 +433,12 @@ onMounted(() => {
 
 :deep(.tp-lblv_v) {
   width: 120px;
+}
+
+#speedValue {
+  display: inline-block;
+  min-width: 45px;
+  text-align: center;
 }
 </style>
 <style>

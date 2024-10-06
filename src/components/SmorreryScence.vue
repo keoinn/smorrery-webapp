@@ -279,4 +279,11 @@ onMounted(async () => {
     }
   }
 }
+
+#speedValue {
+  display: inline-block;
+  min-width: 45px;
+  text-align: center;
+}
+
 </style>
