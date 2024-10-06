@@ -319,14 +319,13 @@ const generateTimeline = () => {
 // 選擇事件
 const selectEvent = (item) => {
   selectedEvent.value = item.id;
-  const event = neoObjects.value.find((selectedEvent) => selectedEvent.cd === item.name.split(' for ')[1]);
+  const event = neoObjects.value.find((selectedEvent) => selectedEvent.des === item.name);
   if (event) {
     selectedEvent.value = event;
     drawEventComparison(event.dist_min, event.dist_max);
     console.log('Selected event:', selectedEvent.value);
   }
 };
-
 
 const formatDateToDataFormat = (dateObj) => {
   const year = dateObj.getFullYear();
@@ -353,14 +352,6 @@ const neosForSelectedDate = computed(() => {
   return neoDataByDate.value[formattedDate] || [];
 });
 
-// 選擇事件
-const selectEvent = (item) => {
-  selectedEvent.value = item.id;
-  const event = neoObjects.value.find((selectedEvent) => selectedEvent.des === item.name);
-  if (event) {
-    selectedEvent.value = event;
-  }
-};
 
 
 // 更新事件列表，只包含當天的資料
