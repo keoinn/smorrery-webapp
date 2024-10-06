@@ -35,7 +35,7 @@ export class Kepler1stLaw extends EmptyTopic {
       w: 77.45779628,
       ma: 174.796,
       epoch: J2000,
-      showReference: true,
+      showReference: false,
       showOrbit: true,
     };
     custom_planet.orbitalParameters = this.params;
@@ -78,7 +78,7 @@ export class Kepler1stLaw extends EmptyTopic {
       arrowLength,
       arrowColor
     );
-    
+    this.referenceArrow.visible = this.params.showReference;
     this.scene.add(this.referenceArrow);
     this.createPoint(new Vector3(10, 10, 10));
   }
@@ -94,7 +94,7 @@ export class Kepler1stLaw extends EmptyTopic {
     });
 
     const point = new Points(geometry, material);
-    this.scene.add(point);
+    // this.scene.add(point);
 
     // 保存對點的引用，以便之後可以移除
     this.point = point;
