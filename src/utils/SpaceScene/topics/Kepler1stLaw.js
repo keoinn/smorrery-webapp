@@ -2,7 +2,6 @@ import Kepler1stLawPage from "@/components/topics/Kepler1stLawPage.vue";
 import { EmptyTopic } from "./EmptyTopic";
 import { J2000 } from "../utils/constants";
 import { CelestialBody } from "../components/objects";
-import { CelestialBody } from "../components/objects";
 
 let custom_planet = {
   name: "custom planet",

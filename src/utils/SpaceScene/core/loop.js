@@ -47,9 +47,9 @@ class Loop {
     this.currentDate = new Date(val)
     this.currentDate_ref.value = this.currentDate.getTime();
     const delta = calcYearSinceJ2000(this.currentDate)
-    for (const object of this.updatables) {
-      object.tick(delta, this.scene);
-      object.trace = []
+    for (const updatable of this.updatables) {
+      updatable.tick(delta, this.scene);
+      updatable.trace = []
     }
 
   }
@@ -99,12 +99,10 @@ class Loop {
       // Reactivity API for watch from outside
       this.currentDate_ref.value = this.currentDate.getTime()
 
-      for (const object of this.updatables) {
-        object.tick(delta, this.scene);
+      for (const updatable of this.updatables) {
+        updatable.tick(delta, this.scene);
       }
     }
-
-
   }
 }
 

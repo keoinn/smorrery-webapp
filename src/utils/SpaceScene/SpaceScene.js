@@ -31,8 +31,9 @@ class SpaceScene extends EmptyScene {
       const body = new CelestialBody(this.scene, data);
       console.log('Created', body.name);
       this.scene.add(body.container);
-      this.loop.updatables.push(body.container);
-
+      if (data.name.toUpperCase() !== 'SUN') {
+        this.loop.updatables.push(body.container);
+      }
       CelestialObjects.push(body);
     });
   };
