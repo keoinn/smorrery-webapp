@@ -18,6 +18,7 @@ const PHASE_NUMBER = 8;
 //TODO:
 // 1. calculate swept area
 // 2. maybe dynamic orbiting speed
+// 3. add graph to tweakpane
 export class Kepler2ndLaw extends EmptyTopic {
   constructor() {
     super("Kepler's Second Law", Kepler2ndLawPage, false);

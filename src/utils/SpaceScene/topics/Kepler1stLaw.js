@@ -2,6 +2,7 @@ import Kepler1stLawPage from "@/components/topics/Kepler1stLawPage.vue";
 import { EmptyTopic } from "./EmptyTopic";
 import { J2000 } from "../utils/constants";
 import { CelestialBody } from "../components/objects";
+import { CelestialBody } from "../components/objects";
 
 let custom_planet = {
   name: "custom planet",
@@ -18,7 +19,6 @@ let custom_planet = {
   radius: 0.383, // Radius
   mass: 0.055, // Mass relative to Earth
   category: "custom",
-  isTraced: false,
 };
 
 export class Kepler1stLaw extends EmptyTopic {
@@ -40,12 +40,19 @@ export class Kepler1stLaw extends EmptyTopic {
     super.onEnter(scene, camera, loop);
     // camera.position.set(0, 0, 100);
 
-    const orbitingObject = new CelestialBody(scene, custom_planet);
-    const container = orbitingObject.container;
-    this.scene.add(container);
-    this.loop.updatables.push(container);
-    custom_planet.isTraced = true;
-    orbitingObject.name = "HI";
+    this.orbitingObject = new CelestialBody(this.scene, custom_planet);
+    this.scene.add(this.orbitingObject.container);
+    this.loop.updatables.push(this.orbitingObject.container);
+    this.orbitingObject.isTraced = true;
+    this.orbitingObject.name = "HI";
+  }
+
+  onExit() {
+    super.onExit();
+    this.scene.remove(this.orbitingObject.container);
+    this.loop.updatables = this.loop.updatables.filter(
+      (updatable) => updatable !== this.orbitingObject.container
+    );
   }
   //TODO:
   // 1. adjust min and max
@@ -96,42 +103,9 @@ export class Kepler1stLaw extends EmptyTopic {
         this._clearTrace();
       });
     });
-    //   pane.addBinding(this.params, label, {
-    //     label: label,
-    //     min: 0,
-    //     max: 1,
-    //     step: 0.001,
-    //   });
-    // });
-    // pane
-    //   .addBinding(this.params, "e", {
-    //     label: "Eccentricity",
-    //     min: 0,
-    //     max: 1,
-    //     step: 0.001,
-    //   })
-    //   .on("change", () => {
-    //     this._clearTrace();
-    //   });
-    // pane
-    //   .addBinding(this.params, "a", {
-    //     label: "Semi-major Axis (AU)",
-    //     min: 0.2,
-    //     step: 0.01,
-    //     max: 40,
-    //   })
-    //   .on("change", () => {
-    //     this._clearTrace();
-    //   });
-    // pane.addBinding(this.params, "i", {
-    //   label: "Inclination (deg)",
-    //   min: 0,
-    //   max: 180,
-    //   step: 1,
-    // });
   }
 
   _clearTrace() {
-    custom_planet.trace = [];
+    this.orbitingObject.trace = [];
   }
 }

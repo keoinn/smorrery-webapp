@@ -21,17 +21,19 @@ class EducationScene extends EmptyScene {
     const sun = new CelestialBody(this.scene, SUN_DATA);
     this.scene.add(sun.container);
 
-    this.smallBodies = [];
-    // 行星
-    this.orbitingObjects = [...PLANETS_DATA, ...this.smallBodies];
+    this.orbitingObjects = [];
+    PLANETS_DATA.forEach((data) => {
+      const obj = new CelestialBody(this.scene, data, SSS_TEXTURES);
+      this.orbitingObjects.push(obj);
+    });
 
     // group by category
-    this.availableObjects = {};
+    this.availableCategories = {};
     this.orbitingObjects.forEach((obj) => {
-      if (!this.availableObjects[obj.category]) {
-        this.availableObjects[obj.category] = [];
+      if (!this.availableCategories[obj.category]) {
+        this.availableCategories[obj.category] = [];
       }
-      this.availableObjects[obj.category].push(obj.name);
+      this.availableCategories[obj.category].push(obj.name);
     });
 
     // all 3D objects in scene
@@ -55,12 +57,10 @@ class EducationScene extends EmptyScene {
   addCelestialBody(bodyName) {
     const body = this.orbitingObjects.find((obj) => obj.name === bodyName);
     if (body) {
-      const orbitingObject = new CelestialBody(this.scene, body);
-      const container = orbitingObject.container
-      this.scene.add(container);
-      this.loop.updatables.push(container);
-      this.objects3d.push(container);
-      orbitingObject.name = bodyName;
+      this.scene.add(body.container);
+      this.loop.updatables.push(body.container);
+      this.objects3d.push(body.container);
+      body.container.name = bodyName;
     }
   }
 

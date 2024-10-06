@@ -113,12 +113,21 @@ const onPaneCreated = (_pane) => {
 };
 
 const currentTopic = computed(() => {
-  return topicController.value.getCurrentTopic() ?? new EmptyTopic("", null);
+  const topic = topicController.value.getCurrentTopic();
+  if (topic) {
+    return topic;
+  } else {
+    return new EmptyTopic("", null);
+  }
 });
-
-const currentTopicPros = computed(
-  () => topicController.value.getCurrentTopic()?.pros?.value ?? null
-);
+const currentTopicPros = computed(() => {
+  const topic = topicController.value.getCurrentTopic();
+  if (topic && topic.pros) {
+    return topic.pros.value;
+  } else {
+    return null;
+  }
+});
 let oldValue = [];
 function handlePaneChaned(changed) {
   const newValue = changed.selectedBodies;
@@ -150,7 +159,6 @@ function handlePaneChaned(changed) {
 topicController.value.onTopicChange = (newTopic) => {
   isMultiSelect.value = newTopic.multiSelect;
   education_scene.removeAllCelestialBodies();
-  education_scene.addCelestialBody(education_scene.orbitingObjects[0]);
 };
 
 //TODO:
@@ -161,6 +169,7 @@ topicController.value.onTopicChange = (newTopic) => {
 // 8. add button to toggle article
 // 9. add default object selection to topic
 // 10. handle too many objects
+// 11. handle search bar when isMultiSelect==false
 onMounted(() => {
   education_scene = new EducationScene(target.value);
 
@@ -172,8 +181,8 @@ onMounted(() => {
   });
 
   education_scene.start();
-  topicController.value.setTopic(topics.value[2], education_scene);
-  celestialBodies.value = education_scene.availableObjects;
+  topicController.value.setTopic(topics.value[0], education_scene);
+  celestialBodies.value = education_scene.availableCategories;
   watch(tweakpaneState.value, handlePaneChaned);
 });
 </script>
@@ -230,7 +239,7 @@ onMounted(() => {
 }
 
 .topic-panel {
-  width: 20%;
+  width: 30%;
   padding: 20px;
   overflow-y: auto;
   border-right: 1px solid #ccc;
@@ -238,7 +247,7 @@ onMounted(() => {
 }
 
 .scene-panel {
-  width: 80%;
+  width: 70%;
   position: relative;
 }
 
