@@ -132,29 +132,32 @@ const toggleTheoryLine = () => {
 </script>
 
 <template>
-  <div>
-    Kepler's Third Law: The square of a planet's orbital period is directly
-    proportional to the cube of its semi-major axis.
-  </div>
-  <div>
-    This means that planets farther from the Sun take longer to complete one
-    orbit.
-  </div>
-  <div>
-    The animation demonstrates how planets move in their elliptical orbits.
-  </div>
-  <div>
-    <button @click="toggleTheoryLine">
-      {{ showTheoryLine ? "Hide Line" : "Show Line" }}
-    </button>
-  </div>
+  <p>
+    Kepler&#39;s Third Law, which took him 10 years to develop (completed in
+    1619), states that
+    <strong
+      >the squares of the planets&#39; orbital periods <em>P</em> are directly
+      proportional to the cubes of the semi-major axes <em>a</em> of their
+      orbits</strong
+    >,
+  </p>
+  <p>
+    This indicates that a^3 is proportional to P^2. The figure show the
+    semi-major axes of celestial objects in astronomical units (AU) against
+    their orbital periods in years on a logarithmic scale, we find a straight
+    line connecting the points with a slope of 2/3. <br />This confirms Kepler’s
+    Third Law, showing that the square of the orbital periods increases with the
+    cubes of the distances of the planets from the Sun.<br />
+  </p>
   <div v-if="pros.objects && pros.objects.length">
     <Scatter
       :data="data"
       :options="options"
       :plugins="[scatterDataLabels]"
       :width="400"
-      :height="400"
+      :height="300"
     />
   </div>
+  <strong>Hint:</strong> Use the controller to add planets and include them in
+  the plot.
 </template>
