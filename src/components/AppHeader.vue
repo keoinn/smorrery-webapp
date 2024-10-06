@@ -1,15 +1,27 @@
 <script setup>
 import open_music_img from "@/assets/images/open_music.png";
+import { ref } from "vue";
 
 const onClickAbout = () => {
   window.location.href="https://www.spaceappschallenge.org/nasa-space-apps-2024/find-a-team/yue-yuan-ren-tuan-yuan/?tab=members"
   } 
+const showEducationDropdown = ref(false);
 </script>
 <template>
   <div class="navigation-container">
     <div class="navigation-bar">
       <div class="navigation-text text-wrapper-1">
-        <span @click="$router.push('/education')"> Education </span>
+        <span
+          @mouseover="showEducationDropdown = true"
+          @mouseleave="showEducationDropdown = false"
+        >
+          Education
+          <div v-if="showEducationDropdown" class="education-dropdown">
+            <router-link to="/education/0">First</router-link>
+            <router-link to="/education/1">Second</router-link>
+            <router-link to="/education/2">Third</router-link>
+          </div>
+        </span>
       </div>
       <div class="navigation-text text-wrapper-2">
         <span @click="$router.push('/events')"> Event </span>
@@ -97,6 +109,30 @@ const onClickAbout = () => {
   .text-wrapper-7 {
     left: 670px;
     top: -5px;
+  }
+
+  .education-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #2f2f2fb2;
+    border: 1px solid #ffffff;
+    border-radius: 5px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    z-index: 200;
+
+    a {
+      color: rgba(158, 158, 158, 1);
+      text-decoration: none;
+      padding: 5px 0;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: white;
+      }
+    }
   }
 }
 </style>

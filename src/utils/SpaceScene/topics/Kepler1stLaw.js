@@ -94,6 +94,9 @@ export class Kepler1stLaw extends EmptyTopic {
     this.loop.updatables = this.loop.updatables.filter(
       (updatable) => updatable !== this.orbitingObject.container
     );
+    this.scene.remove(this.eclipticPlane);
+    this.scene.remove(this.referenceArrow);
+    this.scene.remove(this.orbitingObject.label);
   }
   //TODO:
   // 1. adjust min and max
