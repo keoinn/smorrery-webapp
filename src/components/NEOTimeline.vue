@@ -132,7 +132,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { fetchCADApi } from '@/utils/APIRequests/apis/event.js';
+import { fetchCadApi } from '@/utils/APIRequests/apis/event.js';
 const searchQuery = ref('');
 const neoObjects = ref([]);
 const neoDataByDate = ref({});

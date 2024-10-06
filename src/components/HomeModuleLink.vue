@@ -22,7 +22,7 @@ import background from "@/assets/images/bg.png";
         </p>
       </div>
 
-      <div class="submodule submodule-event" @click="$router.push('/event')">
+      <div class="submodule submodule-event" @click="$router.push('/events')">
         <h1 class="submodule-title event-title">Event</h1>
         <p class="submodule-description event-description">
           The threat <br />of asteroids to Earth
@@ -30,7 +30,7 @@ import background from "@/assets/images/bg.png";
       </div>
       <div
         class="submodule submodule-challenge"
-        @click="$router.push('/challenge')"
+        @click="$router.push('/orrery')"
       >
         <h1 class="submodule-title">Challenge</h1>
         <p class="submodule-description challenge-description">
@@ -50,7 +50,7 @@ import background from "@/assets/images/bg.png";
 
       <div
         class="submodule submodule-education"
-        @click="$router.push('/eduaction')"
+        @click="$router.push('/education')"
       >
         <h1 class="submodule-title">Education</h1>
         <p class="submodule-description education-description">
