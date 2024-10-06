@@ -1,5 +1,9 @@
-<script>
+<script setup>
 import open_music_img from "@/assets/images/open_music.png";
+
+const onClickAbout = () => {
+  window.location.href="https://www.spaceappschallenge.org/nasa-space-apps-2024/find-a-team/yue-yuan-ren-tuan-yuan/?tab=members"
+  } 
 </script>
 <template>
   <div class="navigation-container">
@@ -20,10 +24,7 @@ import open_music_img from "@/assets/images/open_music.png";
         <span @click="$router.push('/tour')"> Tour </span>
       </div>
       <div class="navigation-text text-wrapper-6">
-        <span @click="$router.push('/about')"> About </span>
-      </div>
-      <div class="navigation-text text-wrapper-7">
-        <v-btn icon="mdi-music-note-off" size="x-small"></v-btn>
+        <span @click="onClickAbout"> About </span>
       </div>
     </div>
   </div>
