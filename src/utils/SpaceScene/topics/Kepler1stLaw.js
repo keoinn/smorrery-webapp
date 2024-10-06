@@ -4,7 +4,7 @@ import { J2000 } from "../utils/constants";
 import { Mesh } from "three/build/three.module";
 import { PlaneGeometry } from "three/build/three.module";
 import { MeshBasicMaterial } from "three/build/three.module";
-import { DoubleSide } from "three";
+import { ArrowHelper, BufferGeometry, DoubleSide, Float32BufferAttribute, Points, PointsMaterial, Vector3 } from "three";
 import { CustomCelestialBody } from "../components/CustomCelestialBody";
 
 let custom_planet = {
@@ -35,7 +35,7 @@ export class Kepler1stLaw extends EmptyTopic {
       w: 77.45779628,
       ma: 174.796,
       epoch: J2000,
-      showPlane: false,
+      showReference: true,
       showOrbit: true,
     };
     custom_planet.orbitalParameters = this.params;
@@ -54,7 +54,6 @@ export class Kepler1stLaw extends EmptyTopic {
     this.loop.updatables.push(this.orbitingObject.container);
     this.orbitingObject.isTraced = true;
     this.orbitingObject.name = "HI";
-    console.log(this.orbitingObject);
     this.eclipticPlane = new Mesh(
       new PlaneGeometry(1200, 1200),
       new MeshBasicMaterial({
@@ -65,8 +64,40 @@ export class Kepler1stLaw extends EmptyTopic {
       })
     );
     this.eclipticPlane.rotateX(Math.PI / 2);
-    this.eclipticPlane.visible = this.params.showPlane;
+    this.eclipticPlane.visible = this.params.showReference;
     this.scene.add(this.eclipticPlane);
+    // 創建一個指向(-1, 0, 0)方向的箭頭
+    console.log(this.orbitingObject.orbitalParameters)
+    const arrowDirection = new Vector3(-1, 0, 0);
+    const arrowLength = 50;
+    const arrowColor = 0xff0000; // 紅色
+    
+    this.referenceArrow = new ArrowHelper(
+      arrowDirection.normalize(),
+      new Vector3(0, 0, 0),
+      arrowLength,
+      arrowColor
+    );
+    
+    this.scene.add(this.referenceArrow);
+    this.createPoint(new Vector3(10, 10, 10));
+  }
+
+  createPoint(position) {
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new Float32BufferAttribute([position.x, position.y, position.z], 3));
+
+    const material = new PointsMaterial({
+      color: 0xffff00,  // 黃色
+      size: 5,  // 點的大小
+      sizeAttenuation: false  // 使點的大小不隨距離變化
+    });
+
+    const point = new Points(geometry, material);
+    this.scene.add(point);
+
+    // 保存對點的引用，以便之後可以移除
+    this.point = point;
   }
 
   onExit() {
@@ -126,8 +157,9 @@ export class Kepler1stLaw extends EmptyTopic {
         this.orbitingObject._updateOrbit();
       });
     });
-    pane.addBinding(this.params, "showPlane", { label: "Show Ecliptic Plane" }).on("change", (ev) => {
+    pane.addBinding(this.params, "showReference", { label: "Show Reference" }).on("change", (ev) => {
       this.eclipticPlane.visible = ev.value;
+      this.referenceArrow.visible = ev.value;
     });
     pane.addBinding(this.params, "showOrbit", { label: "Show Orbit" }).on("change", (ev) => {
       this.orbitingObject.orbit.visible = ev.value;

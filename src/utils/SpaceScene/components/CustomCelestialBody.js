@@ -53,7 +53,6 @@ export class CustomCelestialBody extends CelestialBody {
     this.orbit.visible = true;
     // this.orbitalPlane = this.createOrbitalPlane(this.orbitalParameters.h_vec, true);
     // this.orbitalVectors = this.createOrbitalVectors(true);
-    console.log(this);
   }
 
   _updateOrbit() {
@@ -114,17 +113,19 @@ export class CustomCelestialBody extends CelestialBody {
     // // 計算角動量向量 h_vec
     // const p = this.a * (1 - this.e ** 2);
     // const h = Math.sqrt(mu * p);
-
+    const mu = 39.421 //G * sunMass; // Standard gravitational parameter
+    const p = this.orbitalParameters.a * (1 - this.orbitalParameters.e ** 2);
+    const h = Math.sqrt(mu * p);
     this.orbitalParameters.h_vec = new Vector3(
       h *
-        Math.sin((this.i * Math.PI) / 180) *
-        Math.sin((this.om * Math.PI) / 180),
-      h * Math.cos((this.i * Math.PI) / 180),
+        Math.sin((this.orbitalParameters.i * Math.PI) / 180) *
+        Math.sin((this.orbitalParameters.om * Math.PI) / 180),
+      h * Math.cos((this.orbitalParameters.i * Math.PI) / 180),
       h *
-        Math.sin((this.i * Math.PI) / 180) *
-        Math.cos((this.om * Math.PI) / 180)
+        Math.sin((this.orbitalParameters.i * Math.PI) / 180) *
+        Math.cos((this.orbitalParameters.om * Math.PI) / 180)
     );
-
+    this.orbitalParameters.Q = this.orbitalParameters.a * (1 + this.orbitalParameters.e)
     // if (verbose) {
     //   printQuantity(G, "G", "AU^3 yr^(-2) EarthMass^(-1)");
     //   printQuantity(sunMass, "M", "EarthMass");
