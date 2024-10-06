@@ -246,7 +246,7 @@ class CelestialBody {
     const label = new CSS2DObject(labelDiv);
     label.position.set(
       0, 
-      Math.min(this.radius * RADIUS_SCALE * 1.6, this.radius * RADIUS_SCALE + 0.5), 
+      (this.radius * RADIUS_SCALE) + 0.5, 
       0
     );
   
