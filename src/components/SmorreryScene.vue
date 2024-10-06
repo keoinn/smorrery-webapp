@@ -73,7 +73,6 @@ const toggleTraces = () => {
 // Toggle visibility of labels
 function toggleLabels() {
   isLabled.value = !isLabled.value;
-  space_scene.toggleLabels(isLabled.value);
 }
 
 const shiftDateAndClearTraces = (val) => {
@@ -203,7 +202,7 @@ function handleKeydown(event) {
     case 'L':  // Toggle labels
       toggleLabels();
       break;
-    case ' ':  // Toggle play/pause with spacebar
+    case 'P':  // Toggle play/pause with spacebar
       togglePlayPause();
       break;
     case 'M':
@@ -234,7 +233,7 @@ function handleKeydown(event) {
       toggleMute();
       break;
     case 'I': 
-    toggleShortcuts();
+      toggleShortcuts();
       break;
   }
 }
@@ -275,7 +274,7 @@ const toggleShortcuts = () => {
             size="small"
           />
         </template>
-        <span>Play/Pause (Shortcut: Space)</span>
+        <span>Play/Pause (Shortcut: P)</span>
       </v-tooltip>
 
       <v-tooltip bottom>

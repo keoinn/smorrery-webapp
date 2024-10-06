@@ -9,7 +9,7 @@
             <li><strong>ArrowLeft:</strong> Rotate camera counter-clockwise</li>
             <li><strong>ArrowRight:</strong> Rotate camera clockwise</li>
             <li><strong>L:</strong> Toggle label visibility</li>
-            <li><strong>Space:</strong> Toggle play/pause animation</li>
+            <li><strong>P:</strong> Toggle play/pause animation</li>
           </ul>
           <ul class="column">
             <li><strong>J:</strong> Decrease playback speed (0.1x)</li>
