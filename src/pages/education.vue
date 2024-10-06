@@ -7,15 +7,16 @@ import { Kepler2ndLaw } from "@/utils/SpaceScene/topics/Kepler2ndLaw";
 import { Kepler3rdLaw } from "@/utils/SpaceScene/topics/Kepler3rdLaw";
 import { Kepler1stLaw } from "@/utils/SpaceScene/topics/Kepler1stLaw";
 import { VTweakpane } from "v-tweakpane";
+import { useRoute, useRouter } from "vue-router";
 
 const target = ref();
 const celestialBodies = ref({});
 let education_scene;
 const isMultiSelect = ref(true);
 const topics = ref([
+  new Kepler1stLaw(),
   new Kepler2ndLaw(),
   new Kepler3rdLaw(),
-  new Kepler1stLaw(),
 ]);
 const searchKeyword = ref("");
 const topicController = ref(new TopicController(topics.value));
@@ -23,13 +24,10 @@ const tweakpaneState = ref({
   selectedBodies: ["Mercury"],
 });
 
-// 播放
 const control_st = ref(true);
 
-// Speed
 const timeSpeed = ref(1.0);
 
-// Control Bar Action
 const palyingStatuChange = () => {
   control_st.value = !control_st.value;
   if (control_st.value) {
@@ -66,7 +64,7 @@ const recreatePaneBindings = () => {
       Object.keys(celestialBodies.value).forEach((category, index) => {
         const tab = newPane.addFolder({
           title: category,
-          expanded: index === 0, // 預設開啟第一個標籤頁
+          expanded: index === 0,
         });
         tab.on("fold", (ev) => {
           if (ev.expanded && openTab && openTab !== tab) {
@@ -78,7 +76,7 @@ const recreatePaneBindings = () => {
         });
 
         if (index === 0) {
-          openTab = tab; // 設置第一個標籤頁為當前開啟的標籤頁
+          openTab = tab;
         }
 
         tab.element.style.width = "250px";
@@ -276,15 +274,20 @@ topicController.value.onTopicChange = (newTopic) => {
   education_scene.removeAllCelestialBodies();
 };
 
-//TODO:
-// 2. add topics to navbar
-// 5. user can adjust width of the article
-// 6. add time control at bottom
-// 7. select topic from defined property
-// 8. add button to toggle article
-// 9. add default object selection to topic
-// 10. handle too many objects
-// 11. handle search bar when isMultiSelect==false
+const route = useRoute();
+const router = useRouter();
+
+const topicIndex = computed(() => {
+  const id = parseInt(route.params.topicId) || 0;
+  return Math.max(0, Math.min(id, topics.value.length - 1));
+});
+
+watch(topicIndex, (newIndex) => {
+  if (topicController.value && education_scene) {
+    topicController.value.setTopic(topics.value[newIndex], education_scene);
+  }
+});
+
 onMounted(() => {
   education_scene = new EducationScene(target.value);
 
@@ -296,7 +299,10 @@ onMounted(() => {
   });
 
   education_scene.start();
-  topicController.value.setTopic(topics.value[0], education_scene);
+  topicController.value.setTopic(
+    topics.value[topicIndex.value],
+    education_scene
+  );
   celestialBodies.value = education_scene.availableCategories;
   watch(tweakpaneState.value, handlePaneChaned);
 
@@ -307,6 +313,21 @@ onMounted(() => {
     });
   };
 });
+
+const changeTopic = (index) => {
+  if (index >= 0 && index < topics.value.length) {
+    router.push({ name: "Education", params: { topicId: index } });
+  }
+};
+
+//TODO:
+// 2. add topics to navbar
+// 5. user can adjust width of the article
+// 6. add time control at bottom
+// 7. select topic from defined property
+// 8. add button to toggle article
+// 9. add default object selection to topic
+// 10. handle too many objects
 </script>
 
 <template>
@@ -351,6 +372,15 @@ onMounted(() => {
         />
       </div>
     </div>
+    <div class="topic-selector">
+      <button
+        v-for="(topic, index) in topics"
+        :key="index"
+        @click="changeTopic(index)"
+      >
+        {{ topic.name }}
+      </button>
+    </div>
   </div>
 </template>
 
@@ -365,7 +395,7 @@ onMounted(() => {
   padding: 20px;
   overflow-y: auto;
   border-right: 1px solid #ccc;
-  padding-top: 120px;
+  margin-top: 120px;
 }
 
 .scene-panel {
@@ -434,6 +464,12 @@ onMounted(() => {
 
 :deep(.tp-lblv_v) {
   width: 120px;
+}
+
+#speedValue {
+  display: inline-block;
+  min-width: 45px;
+  text-align: center;
 }
 </style>
 <style>

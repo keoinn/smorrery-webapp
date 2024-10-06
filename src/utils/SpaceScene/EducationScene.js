@@ -26,15 +26,16 @@ class EducationScene extends EmptyScene {
 
     // Celestial objects
     const sun = new CelestialBody(this.scene, this.camera, SUN_DATA);
+    sun.label.visible = false;
     this.scene.add(sun.container);
 
     this.orbitingObjects = [];
     PLANETS_DATA.forEach((data) => {
       const obj = new CelestialBody(this.scene, this.camera, data);
       this.orbitingObjects.push(obj);
+      obj.label.visible = false;
     });
 
-    // 調用 getNeo 並存儲結果
     this.neoObjects = [];
     this.initNeoObjects();
 
@@ -61,7 +62,7 @@ class EducationScene extends EmptyScene {
   }
 
   _updateCategories() {
-    this.availableCategories = {}; // 重置類別
+    this.availableCategories = {};
     this.orbitingObjects.forEach((obj) => {
       if (!this.availableCategories[obj.category]) {
         this.availableCategories[obj.category] = [];
@@ -73,15 +74,13 @@ class EducationScene extends EmptyScene {
     this.onCategoriesUpdated(this.availableCategories);
   }
 
-  onCategoriesUpdated(categories) {
-    // 這個方法將在 Vue 組件中被覆蓋
-  }
-
+  onCategoriesUpdated(categories) {}
   async initNeoObjects() {
     try {
       const neoData = await getNeo();
       neoData.forEach((data) => {
-        const obj = new CelestialBody(this.scene, data, SSS_TEXTURES);
+        const obj = new CelestialBody(this.scene, this.camera, data);
+        obj.label.visible = false;
         this.orbitingObjects.push(obj);
       });
       this._updateCategories();
