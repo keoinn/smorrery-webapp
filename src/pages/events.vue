@@ -51,10 +51,14 @@ export default {
 } */
 
 .topic {
-    margin-top: 70px;
+    margin-top: 90px;
     text-align: center;
     font-weight: bold;
-    font-size: 2.5em;
+    font-size: 20px;
     letter-spacing: 2px;
+}
+
+body {
+  font-family: 'Gilroy-Bold', sans-serif;
 }
 </style>

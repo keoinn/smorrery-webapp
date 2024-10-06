@@ -73,6 +73,13 @@ export default defineConfig({
     port: 3000,
   },
   build: {
+    // Or you can specify what should be preloaded.
+    modulePreload: {
+        resolveDependencies(url, deps, context) {
+            return [] // Your list of preloaded deps.
+        },
+    },
+
     rollupOptions: {
       output: {
         // https://github.com/rollup/rollup/blob/master/src/utils/sanitizeFileName.ts
