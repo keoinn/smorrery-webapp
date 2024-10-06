@@ -5,6 +5,10 @@ import { ref } from "vue";
 const onClickAbout = () => {
   window.location.href="https://www.spaceappschallenge.org/nasa-space-apps-2024/find-a-team/yue-yuan-ren-tuan-yuan/?tab=members"
   } 
+
+const onClickLab = () => {
+  window.location.href = "https://keoinn.github.io/gaia-room/lab.html"
+}
 const showEducationDropdown = ref(false);
 </script>
 <template>
@@ -27,7 +31,7 @@ const showEducationDropdown = ref(false);
         <span @click="$router.push('/events')"> Event </span>
       </div>
       <div class="navigation-text text-wrapper-3">
-        <span @click="$router.push('/lab')"> Lab </span>
+        <span @click="onClickLab"> Lab </span>
       </div>
       <div class="navigation-text text-wrapper-4">
         <span @click="$router.push('/challenge')"> Challenge </span>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive 3D Orrery</title>
+
+    <link rel="stylesheet" href="./static/styles/orrery.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dat.gui@0.7.7/build/dat.gui.min.js"></script>
+</head>
+
+<body>
+    <div id="info">Interactive 3D Orrery<br>Drag to rotate, scroll to zoom</div>
+    <div id="timeControl">
+        <button id="playPause" class="control-button">
+            <i class="fas fa-pause"></i>
+        </button>
+        <button id="reverse" class="control-button">
+            <i class="fas fa-backward"></i>
+        </button>
+        <button id="goToJ2000" class="control-button">J2000</button>
+        <button id="goToToday" class="control-button">Today</button>
+        <button id="setSpeedOne" class="control-button">1x</button>
+        <div id="speedControl">
+            <label for="speedSlider">Speed:</label>
+            <input type="range" id="speedSlider" min="-2" max="2" step="0.01" value="0">
+            <span id="speedValue">1.00</span>
+        </div>
+        <span id="currentDateDisplay"></span>
+        <span id="julianDateDisplay"></span>
+    </div>
+
+    <div id="checkboxes">
+        <div class="custom-checkbox">
+            <input type="checkbox" id="showOrbits">
+            <label for="showOrbits">Show orbits</label>
+        </div>
+        <div class="custom-checkbox">
+            <input type="checkbox" id="showLabels">
+            <label for="showLabels">Show labels</label>
+        </div>
+        <div class="custom-checkbox">
+            <input type="checkbox" id="showAxes">
+            <label for="showAxes">Show axes</label>
+        </div>
+        <div class="custom-checkbox">
+            <input type="checkbox" id="showEcliptic">
+            <label for="showEcliptic">Show ecliptic plane</label>
+        </div>
+        <div class="custom-checkbox"> <!-- Education Module -->
+            <input type="checkbox" id="showSweptArea">
+            <label for="showSweptArea">Show swept area</label>
+        </div>
+    </div>
+
+    <!-- Celestial Lab Module -->
+    <button id="lab-toggle-panel" aria-label="Toggle Panel">
+        <i class="material-icons">add</i>
+    </button>
+    <div id="lab-input-panel">
+        <div class="panel-content">
+            <h2>Create an asteroid!</h2>
+            <div class="lab-input-group">
+                <label for="objectName">Name:</label>
+                <input type="text" id="objectName" value="">
+            </div>
+            <div class="lab-input-group">
+                <label for="objectMass">Mass:<span class="unit">Earth masses</span></label>
+                <input type="number" id="objectMass" value="0.000001" step="0.0000001" min="0">
+            </div>
+            <h3>Initial position<span class="unit">AU</span></h3>
+            <div class="lab-input-group">
+                <label for="posX">X:</label>
+                <input type="number" id="posX" value="2" step="0.1">
+            </div>
+            <div class="lab-input-group">
+                <label for="posY">Y:</label>
+                <input type="number" id="posY" value="0.1" step="0.1">
+            </div>
+            <div class="lab-input-group">
+                <label for="posZ">Z:</label>
+                <input type="number" id="posZ" value="0" step="0.1">
+            </div>
+            <h3>Initial velocity<span class="unit">km/s</span></h3>
+            <div class="lab-input-group">
+                <label for="velX">X:</label>
+                <input type="number" id="velX" value="0" step="0.1">
+            </div>
+            <div class="lab-input-group">
+                <label for="velY">Y:</label>
+                <input type="number" id="velY" value="0" step="0.1">
+            </div>
+            <div class="lab-input-group">
+                <label for="velZ">Z:</label>
+                <input type="number" id="velZ" value="-20" step="0.1">
+            </div>
+            <button class="lab-button" id="labLaunchButton">Launch</button>
+            <button class="lab-button" id="labDrawButton">Draw</button>
+        </div>
+
+	<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+	
+    <script type="module" src="./static/scripts/orrery.js"></script>
+    
+</body>
+</html>
