@@ -287,7 +287,7 @@ const processData = (NEO_data) => {
 
 const generateTimeline = () => {
   timelineDays.value = [];
-  for (let i = -15; i <= 15; i++) {
+  for (let i = -100; i <= 100; i++) {
     const date = new Date(currentDate.value);
     date.setDate(currentDate.value.getDate() + i);
     
@@ -307,7 +307,6 @@ const generateTimeline = () => {
 };
 
 
-// 選擇事件
 const selectEvent = (item) => {
   selectedEvent.value = item.id;
   const event = neoObjects.value.find((selectedEvent) => selectedEvent.des === item.name);
@@ -337,7 +336,6 @@ const otherFields = computed(() => {
 });
 
 
-// 更新事件列表，只包含當天的資料
 const updateEventList = () => {
   const formattedDate = parseDate(formatDateToDataFormat(selectedDate.value));
   eventList.value = neoDataByDate.value[formattedDate]?.map((item, index) => ({
