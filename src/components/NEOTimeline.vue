@@ -284,8 +284,9 @@ const processData = (NEO_data) => {
     }
     obj.description = 'Just some NEO.';
     obj.links = [
-      { text: 'NASA NEO Database', url: 'https://cneos.jpl.nasa.gov/' },
-      { text: 'Asteroid Watch', url: 'https://www.nasa.gov/asteroid-and-comet-watch/' },
+      { text: 'Center for NEO Studies', url: 'https://cneos.jpl.nasa.gov/' },
+      { text: 'Asteroid watch', url: 'https://www.jpl.nasa.gov/asteroid-watch/' },
+      { text: 'NEO Earth Close Approaches', url: 'https://cneos.jpl.nasa.gov/ca/' }
     ];
     return obj;
   });

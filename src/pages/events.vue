@@ -51,7 +51,7 @@ export default {
 } */
 
 .topic {
-    margin-top: 50px;
+    margin-top: 90px;
     text-align: center;
     font-weight: bold;
     font-size: 20px;
