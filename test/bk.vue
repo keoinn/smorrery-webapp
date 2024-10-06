@@ -30,23 +30,20 @@
         </v-card>
       </div>
 
-      <div class="event-details d-flex flex-wrap" style="flex: 5; margin: 30px;">
-        <div class="event-card d-flex flex-column" style="flex: 3; height: 100%; max-height: 100%;">
+      <div class="event-details d-flex flex-wrap" style="flex: 3; margin-left: 20px;">
+        <div class="event-card" style="flex: 1; margin-right: 20px;">
           <h2>Distance Comparison</h2>
-          <div class="canvas-container" style="flex-grow: 1; overflow: hidden;">
-            <div>
-              <h4>Earth to Moon ( &#x2248 0.00257 AU )</h4>
-              <canvas class="comparison-canvas" ref="comparisonCanvas1" width="600" height="100"></canvas>
-            </div>
-            <div>
-              <h4>Earth to NEO</h4>
-              <canvas class="comparison-canvas" ref="comparisonCanvas2" width="600" height="100"></canvas>
-            </div>
-            <div>
-              <h4>1,000,000 km</h4>
-              <canvas class="comparison-canvas" ref="comparisonCanvas3" width="600" height="100"></canvas>
-            </div>
-          </div>
+            <v-container class="d-flex flex-wrap">
+              <v-row>
+                <canvas ref="comparisonCanvas1"></canvas>
+              </v-row>
+              <v-row>
+                <canvas ref="comparisonCanvas2"></canvas>
+              </v-row>
+              <v-row>
+                <canvas ref="comparisonCanvas3"></canvas>
+              </v-row>
+            </v-container>
         </div>
         <div class="event-card" style="flex: 2;">
           <div id="event-content">
@@ -104,7 +101,7 @@
     
   <!-- 時間軸結構 -->
   <div id="timeline-container" @wheel="onWheelScroll" @mousedown="onMouseDown">
-      <div id="timeline" :style="{ width: `${timelineWidth}px`, transform: `translateX(${timelineOffset}px)` }">
+      <div id="timeline" :style="{ transform: `translateX(${timelineOffset}px)` }">
         <div
           v-for="(date, index) in filteredTimelineDays"
           :key="index"
@@ -112,8 +109,7 @@
           :class="{ 'event yellow': date.eventCount > 0 && date.eventCount <= 5, 'event red': date.eventCount > 5 }"
           :data-date="date.title"
           @click="onDateSelect(date.date)"
-          @mouseover="showEvent(date)"
-        >
+          @mouseover="showEvent(date)">
         </div>
       </div>
     </div>
@@ -133,8 +129,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { fetchCADApi } from '@/utils/APIRequests/apis/event.js';
-import { cos } from 'three/webgpu';
-import { log } from 'three/webgpu';
 const searchQuery = ref('');
 const neoObjects = ref([]);
 const neoDataByDate = ref({});
@@ -154,13 +148,8 @@ let initialTimelineOffset = 0;
 const comparisonCanvas1 = ref(null);
 const comparisonCanvas2 = ref(null);
 const comparisonCanvas3 = ref(null);
-// const comparisonCanvas4 = ref(null);
+const comparisonCanvas4 = ref(null);
 
-const markerWidth = 82; // 根据实际标记宽度调整
-
-const timelineWidth = computed(() => {
-  return timelineDays.value.length * markerWidth;
-});
 
 
 // 根據搜尋字串動態過濾 timelineDays 資料
@@ -173,13 +162,9 @@ const filteredTimelineDays = computed(() => {
 // 處理滑鼠滾輪滾動
 const onWheelScroll = (event) => {
   event.preventDefault();
-  const delta = Math.sign(event.deltaY);
-  currentDate.value.setDate(currentDate.value.getDate() + delta);
-  generateTimeline();
-  scrollToCentralDate(currentDate.value);
-  updateEventList();
+  event.stopPropagation();
+  timelineOffset.value -= event.deltaY; // 直接使用 deltaY 調整時間軸偏移
 };
-
 
 // 處理搜尋輸入框變更
 const onSearch = () => {
@@ -209,17 +194,15 @@ const onMouseMove = (event) => {
 const onMouseUp = () => {
   isDragging.value = false;
   const totalMovement = timelineOffset.value - initialTimelineOffset;
-  const daysDiff = Math.round(-totalMovement / markerWidth); // 根据每个标记的宽度计算日期差
+  const daysDiff = Math.round(totalMovement / 40); // 假設每40像素代表一天
+  currentDate.value = new Date(currentDate.value.setDate(currentDate.value.getDate() - daysDiff));
 
-  currentDate.value.setDate(currentDate.value.getDate() + daysDiff);
-  generateTimeline();
-  scrollToCentralDate(currentDate.value);
-  updateEventList();
-
+  // 重置時間軸偏移量並重新生成時間軸
+  timelineOffset.value = 0;
+  generateTimeline(); 
   document.removeEventListener('mousemove', onMouseMove);
   document.removeEventListener('mouseup', onMouseUp);
 };
-
 
 
 // 清除事件監聽器（當組件卸載時）
@@ -304,20 +287,19 @@ const processData = (NEO_data) => {
 
 const generateTimeline = () => {
   timelineDays.value = [];
-  const daysBefore = 15;
-  const daysAfter = 15;
-
-  for (let i = -daysBefore; i <= daysAfter; i++) {
+  for (let i = -100; i <= 100; i++) {
     const date = new Date(currentDate.value);
     date.setDate(currentDate.value.getDate() + i);
-
-    const formattedDate = date.toISOString().split('T')[0];
+    
+    const formattedDate = date.toISOString().split('T')[0].slice(5);
     const eventsForDate = neoDataByDate.value[formattedDate] || [];
+    console.log('Events for a:', neoDataByDate.value[formattedDate]);
     const eventCount = eventsForDate.length;
+    console.log('Events for date:', eventCount);
 
     timelineDays.value.push({
       date,
-      title: formattedDate.slice(5), // 显示 MM-DD
+      title: formattedDate, 
       hasEvent: eventCount > 0,
       eventCount,
     });
@@ -325,18 +307,15 @@ const generateTimeline = () => {
 };
 
 
-
-// 選擇事件
 const selectEvent = (item) => {
+  selectedEvent.value = item.id;
   const event = neoObjects.value.find((selectedEvent) => selectedEvent.des === item.name);
-
   if (event) {
     selectedEvent.value = event;
-    drawEventComparison(event.dist);
+    drawEventComparison(event.dist_min, event.dist_max);
     console.log('Selected event:', selectedEvent.value);
   }
 };
-
 
 const formatDateToDataFormat = (dateObj) => {
   const year = dateObj.getFullYear();
@@ -357,7 +336,6 @@ const otherFields = computed(() => {
 });
 
 
-// 更新事件列表，只包含當天的資料
 const updateEventList = () => {
   const formattedDate = parseDate(formatDateToDataFormat(selectedDate.value));
   eventList.value = neoDataByDate.value[formattedDate]?.map((item, index) => ({
@@ -397,17 +375,24 @@ const onDateSelect = (date) => {
   currentDate.value = date;
   selectedDate.value = date;
 
-  scrollToCentralDate(date);
+  const index = timelineDays.value.findIndex(d => d.date.toISOString() === date.toISOString());
+  if (index >= 0) {
+    timelineOffset.value = -index * 40; 
+  }
+
+  // 更新事件列表
   updateEventList();
 };
 
 
+
+// 當組件掛載時取得資料並初始化時間軸
 onMounted(async () => {
   try {
-    const NEO_data = await fetchCADApi('2000-10-10', '2100-10-10', 0.05);
+    const NEO_data = await fetchCADApi('2024-10-10', '2024-10-30', 0.2);
     processData(NEO_data.data);
+    console.log('NEO data:', NEO_data.data);
     generateTimeline();
-    scrollToCentralDate(currentDate.value);
   } catch (error) {
     console.error('Error fetching NEO data:', error);
   }
@@ -416,11 +401,6 @@ const showEvent = (date) => {
   const formattedDate = date.date.toISOString().split('T')[0];
   selectedEvent.value = neoDataByDate.value[formattedDate]?.[0] || null;
 };
-
-window.addEventListener('resize', () => {
-  scrollToCentralDate(currentDate.value);
-});
-
 
 const openLink = (url) => {
   if (url) {
@@ -431,123 +411,84 @@ const openLink = (url) => {
 };
 
 const formatFieldTime = (timeString) => {
-  let days = 0;
-  let hours = 0;
-  let minutes = 0;
-  
-  if (timeString.includes('_')) {
-      const [dayPart, hourMinutePart] = timeString.split('_');
-      days = parseInt(dayPart);
+let days = 0;
+    let hours = 0;
+    let minutes = 0;
+    
+    if (timeString.includes('_')) {
+        const [dayPart, hourMinutePart] = timeString.split('_');
+        days = parseInt(dayPart);
 
-      const [hourPart, minutePart] = hourMinutePart.split(':');
-      hours = parseInt(hourPart);
-      minutes = parseInt(minutePart);
-  } else {
-      const [hourPart, minutePart] = timeString.split(':');
-      hours = parseInt(hourPart);
-      minutes = parseInt(minutePart);
-  }
+        const [hourPart, minutePart] = hourMinutePart.split(':');
+        hours = parseInt(hourPart);
+        minutes = parseInt(minutePart);
+    } else {
+        const [hourPart, minutePart] = timeString.split(':');
+        hours = parseInt(hourPart);
+        minutes = parseInt(minutePart);
+    }
 
-  // 返回格式化字符串
-  return `${days} d ${hours} h ${minutes} m`;
+    // 返回格式化字符串
+    return `${days} d ${hours} h ${minutes} m`;
 };
 
-
-const scrollToCentralDate = (date) => {
-  const container = document.getElementById('timeline-container');
-  const markerWidth = 82; // 根据您的实际标记宽度调整
-  const index = timelineDays.value.findIndex(d => d.date.toISOString() === date.toISOString());
-
-  if (index >= 0) {
-    const markerOffset = index * markerWidth;
-    const containerWidth = container.offsetWidth;
-    let scrollToPosition = markerOffset - (containerWidth / 2) + (markerWidth / 2);
-
-    // 防止滚动超出左边界
-    if (scrollToPosition < 0) {
-      scrollToPosition = 0;
-    }
-
-    // 防止滚动超出右边界
-    const maxScrollPosition = (timelineDays.value.length * markerWidth) - containerWidth;
-    if (scrollToPosition > maxScrollPosition) {
-      scrollToPosition = maxScrollPosition;
-    }
-
-    timelineOffset.value = -scrollToPosition;
-  }
-};
-
-
-
-
-
-const scrollToCentralDate = (date) => {
-  const container = document.getElementById('timeline-container');
-  const markerWidth = 82; // 根据您的实际标记宽度调整
-  const index = timelineDays.value.findIndex(d => d.date.toISOString() === date.toISOString());
-
-  if (index >= 0) {
-    const markerOffset = index * markerWidth;
-    const containerWidth = container.offsetWidth;
-    let scrollToPosition = markerOffset - (containerWidth / 2) + (markerWidth / 2);
-
-    // 防止滚动超出左边界
-    if (scrollToPosition < 0) {
-      scrollToPosition = 0;
-    }
-
-    // 防止滚动超出右边界
-    const maxScrollPosition = (timelineDays.value.length * markerWidth) - containerWidth;
-    if (scrollToPosition > maxScrollPosition) {
-      scrollToPosition = maxScrollPosition;
-    }
-
-    timelineOffset.value = -scrollToPosition;
-  }
-};
-
-
-
-
-const km = 1000000/149597871
-const drawEventComparison = (distance) => {
-  // 1 AU = 149597871 km
-  const divideBy = 0.05;
-
+const drawEventComparison = (distance1, distance2) => {
   const canvas1 = comparisonCanvas1.value;
   const ctx1 = canvas1.getContext('2d');
-  drawComparisonLine(ctx1,  0.00257/divideBy);
+  drawComparisonLine(ctx1, 'Earth to Moon', 0.00257*1000);
 
   const canvas2 = comparisonCanvas2.value;
   const ctx2 = canvas2.getContext('2d');
-  drawComparisonLine(ctx2, distance/divideBy);
+  drawComparisonLine(ctx2, 'Earth to NEO (min-max)', distance1*1000, distance2*1000);
 
-  // const canvas3 = comparisonCanvas3.value;
-  // const ctx3 = canvas3.getContext('2d');
-  // drawComparisonLine(ctx3, 'Earth to Sun (1AU)',  1);
   const canvas3 = comparisonCanvas3.value;
   const ctx3 = canvas3.getContext('2d');
-  drawComparisonLine(ctx3, km/divideBy);
+  // drawComparisonLine(ctx3, 'Compare with 1000 km', 1000 / 149597870.7*1000);
+  drawComparisonLine(ctx3, 'Earth to Sun (1AU)', 1*1000);
 }
 
+const drawComparisonLine = (ctx, label, ...lengths) => {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // 清除画布
+  ctx.font = '16px Arial';
 
-const drawComparisonLine = (ctx, length) => {
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-  const startX = 5;
+  // 设置绘图的初始位置
+  const startX = 50;
   const startY = 40;
-  const offsetY = 30;
-  const scale = ctx.canvas.width - 10
+  const offsetY = 20;
 
-  ctx.beginPath();
-  ctx.moveTo(startX, startY);
-  ctx.lineTo(startX + length*scale, startY);
-  ctx.strokeStyle = '#fca7a7';
-  ctx.lineWidth = 5;
-  ctx.stroke();
-  ctx.fillStyle = "white";
-  // ctx.fillText(label, startX, startY - 20);
+  if (lengths.length === 1) {
+    const length1 = lengths[0];
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(startX + length1, startY);
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillText(label, startX, startY - 10);
+
+  } else if (lengths.length === 2) {
+    const length1 = lengths[0];
+    const length2 = lengths[1];
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(startX + length1, startY);
+    ctx.strokeStyle = 'blue';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillText(label, startX, startY - 10);
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY + offsetY);
+    ctx.lineTo(startX + length2, startY + offsetY);
+    ctx.strokeStyle = 'red'; // 为了区分，改变颜色
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+  } else {
+    console.error('Length must have either one or two values');
+  }
 };
 
 
@@ -638,7 +579,7 @@ const drawComparisonLine = (ctx, length) => {
   display: flex;
   justify-content: space-between;
   height: 550px;
-  gap: 20px;
+  gap: 30px;
 }
 
 .event-card {
@@ -649,20 +590,6 @@ const drawComparisonLine = (ctx, length) => {
   padding: 30px 40px;
   border-radius: 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.canvas-container {
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-  height: 100%;
-}
-
-.comparison-canvas {
-  flex: 1;
-  width: 100%;
-  height: auto;
-  object-fit: contain;
 }
 
 .scrollable {
