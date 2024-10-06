@@ -1,12 +1,8 @@
-import {
-  createSun,
-  createOrbitingObject,
-  createBackground,
-} from "./components/objects.js";
+import { CelestialBody, createBackground } from "./components/objects.js";
 
 import { EmptyScene } from "./EmptyScene.js";
 import { createLightSource } from "./components/light.js";
-import { PLANETS_DATA } from "./utils/constants.js";
+import { PLANETS_DATA, SSS_TEXTURES, SUN_DATA } from "./utils/constants.js";
 
 //TODO: add camera movement
 class EducationScene extends EmptyScene {
@@ -23,20 +19,22 @@ class EducationScene extends EmptyScene {
     });
 
     // Celestial objects
-    const sun = createSun();
-    this.scene.add(sun);
+    const sun = new CelestialBody(this.scene, SUN_DATA, SSS_TEXTURES);
+    this.scene.add(sun.container);
 
-    this.smallBodies = [];
-    // 行星
-    this.orbitingObjects = [...PLANETS_DATA, ...this.smallBodies];
+    this.orbitingObjects = [];
+    PLANETS_DATA.forEach((data) => {
+      const obj = new CelestialBody(this.scene, data, SSS_TEXTURES);
+      this.orbitingObjects.push(obj);
+    });
 
     // group by category
-    this.availableObjects = {};
+    this.availableCategories = {};
     this.orbitingObjects.forEach((obj) => {
-      if (!this.availableObjects[obj.category]) {
-        this.availableObjects[obj.category] = [];
+      if (!this.availableCategories[obj.category]) {
+        this.availableCategories[obj.category] = [];
       }
-      this.availableObjects[obj.category].push(obj.name);
+      this.availableCategories[obj.category].push(obj.name);
     });
 
     // all 3D objects in scene
@@ -60,11 +58,10 @@ class EducationScene extends EmptyScene {
   addCelestialBody(bodyName) {
     const body = this.orbitingObjects.find((obj) => obj.name === bodyName);
     if (body) {
-      const orbitingObject = createOrbitingObject(body);
-      this.scene.add(orbitingObject);
-      this.loop.updatables.push(orbitingObject);
-      this.objects3d.push(orbitingObject);
-      orbitingObject.name = bodyName;
+      this.scene.add(body.container);
+      this.loop.updatables.push(body.container);
+      this.objects3d.push(body.container);
+      body.container.name = bodyName;
     }
   }
 

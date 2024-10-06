@@ -19,7 +19,7 @@ export class EmptyTopic {
 
   onObjectChange(newObject, oldObject) {
     newObject.forEach((object) => {
-      object.isTrace = true;
+      object.isTraced = true;
     });
   }
 }

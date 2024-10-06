@@ -35,7 +35,7 @@ const data = computed(() => {
       borderColor: color,
       backgroundColor: color,
       data: [
-        { x: object.period, y: object.orbitalElements.a, text: object.name },
+        { x: object.period, y: object.orbitalParameters.a, text: object.name },
       ],
     });
   });
