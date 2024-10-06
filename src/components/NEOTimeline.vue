@@ -132,7 +132,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { fetchCADApi } from '@/utils/APIRequests/apis/event.js';
+import { fetchCadApi } from '@/utils/APIRequests/apis/event.js';
 const searchQuery = ref('');
 const neoObjects = ref([]);
 const neoDataByDate = ref({});
@@ -147,7 +147,7 @@ const isCalendarOpen = ref(false);
 const neo = ref({});
 const timelineOffset = ref(0);
 const isDragging = ref(false); 
-let startX = 0; // 滑鼠起始位置
+let startX = 0; 
 let initialTimelineOffset = 0; 
 const comparisonCanvas1 = ref(null);
 const comparisonCanvas2 = ref(null);
@@ -168,7 +168,7 @@ const filteredTimelineDays = computed(() => {
   );
 });
 
-// 處理滑鼠滾輪滾動
+// 滑鼠滾輪滾動
 const onWheelScroll = (event) => {
   event.preventDefault();
   const delta = Math.sign(event.deltaY);
@@ -179,12 +179,12 @@ const onWheelScroll = (event) => {
 };
 
 
-// 處理搜尋輸入框變更
+// 搜尋輸入框
 const onSearch = () => {
   console.log('Search for:', searchQuery.value);
 };
 
-// 處理滑鼠拖曳開始
+// 滑鼠拖曳
 const onMouseDown = (event) => {
   isDragging.value = true;
   startX = event.clientX;
@@ -219,8 +219,6 @@ const onMouseUp = () => {
 };
 
 
-
-// 清除事件監聽器（當組件卸載時）
 onBeforeUnmount(() => {
   document.removeEventListener('mousemove', onMouseMove);
   document.removeEventListener('mouseup', onMouseUp);
@@ -255,7 +253,6 @@ const units = {
   h: 'mag',
 }
 
-// 解析日期字串，格式為 'YYYY-MMM-DD'，轉換為 'YYYY-MM-DD'
 const parseDate = (dateStr) => {
   const [year, monthName, day] = dateStr.split('-');
   const month = monthMap[monthName];
@@ -301,8 +298,8 @@ const processData = (NEO_data) => {
 
 const generateTimeline = () => {
   timelineDays.value = [];
-  const daysBefore = 15;
-  const daysAfter = 15;
+  const daysBefore = 30;
+  const daysAfter = 30;
 
   for (let i = -daysBefore; i <= daysAfter; i++) {
     const date = new Date(currentDate.value);
@@ -400,7 +397,7 @@ const onDateSelect = (date) => {
 
 onMounted(async () => {
   try {
-    const NEO_data = await fetchCADApi('2020-10-10', '2030-10-10', 0.05);
+    const NEO_data = await fetchCadApi('2020-10-10', '2030-10-10', 0.05);
     processData(NEO_data.data);
     generateTimeline();
     scrollToCentralDate(currentDate.value);
