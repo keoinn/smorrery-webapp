@@ -101,7 +101,7 @@
     
   <!-- 時間軸結構 -->
   <div id="timeline-container" @wheel="onWheelScroll" @mousedown="onMouseDown">
-      <div id="timeline" :style="{ transform: `translateX(${timelineOffset}px)` }">
+      <div id="timeline" :style="{ width: `${timelineWidth}px`, transform: `translateX(${timelineOffset}px)` }">
         <div
           v-for="(date, index) in filteredTimelineDays"
           :key="index"
@@ -109,7 +109,8 @@
           :class="{ 'event yellow': date.eventCount > 0 && date.eventCount <= 5, 'event red': date.eventCount > 5 }"
           :data-date="date.title"
           @click="onDateSelect(date.date)"
-          @mouseover="showEvent(date)">
+          @mouseover="showEvent(date)"
+        >
         </div>
       </div>
     </div>
@@ -150,6 +151,11 @@ const comparisonCanvas2 = ref(null);
 const comparisonCanvas3 = ref(null);
 const comparisonCanvas4 = ref(null);
 
+const markerWidth = 82; // 根据实际标记宽度调整
+
+const timelineWidth = computed(() => {
+  return timelineDays.value.length * markerWidth;
+});
 
 
 // 根據搜尋字串動態過濾 timelineDays 資料
@@ -162,9 +168,13 @@ const filteredTimelineDays = computed(() => {
 // 處理滑鼠滾輪滾動
 const onWheelScroll = (event) => {
   event.preventDefault();
-  event.stopPropagation();
-  timelineOffset.value -= event.deltaY; // 直接使用 deltaY 調整時間軸偏移
+  const delta = Math.sign(event.deltaY);
+  currentDate.value.setDate(currentDate.value.getDate() + delta);
+  generateTimeline();
+  scrollToCentralDate(currentDate.value);
+  updateEventList();
 };
+
 
 // 處理搜尋輸入框變更
 const onSearch = () => {
@@ -194,15 +204,17 @@ const onMouseMove = (event) => {
 const onMouseUp = () => {
   isDragging.value = false;
   const totalMovement = timelineOffset.value - initialTimelineOffset;
-  const daysDiff = Math.round(totalMovement / 40); // 假設每40像素代表一天
-  currentDate.value = new Date(currentDate.value.setDate(currentDate.value.getDate() - daysDiff));
+  const daysDiff = Math.round(-totalMovement / markerWidth); // 根据每个标记的宽度计算日期差
 
-  // 重置時間軸偏移量並重新生成時間軸
-  timelineOffset.value = 0;
-  generateTimeline(); 
+  currentDate.value.setDate(currentDate.value.getDate() + daysDiff);
+  generateTimeline();
+  scrollToCentralDate(currentDate.value);
+  updateEventList();
+
   document.removeEventListener('mousemove', onMouseMove);
   document.removeEventListener('mouseup', onMouseUp);
 };
+
 
 
 // 清除事件監聽器（當組件卸載時）
@@ -287,19 +299,20 @@ const processData = (NEO_data) => {
 
 const generateTimeline = () => {
   timelineDays.value = [];
-  for (let i = -15; i <= 15; i++) {
+  const daysBefore = 15;
+  const daysAfter = 15;
+
+  for (let i = -daysBefore; i <= daysAfter; i++) {
     const date = new Date(currentDate.value);
     date.setDate(currentDate.value.getDate() + i);
-    
-    const formattedDate = date.toISOString().split('T')[0].slice(5);
+
+    const formattedDate = date.toISOString().split('T')[0];
     const eventsForDate = neoDataByDate.value[formattedDate] || [];
-    console.log('Events for a:', neoDataByDate.value[formattedDate]);
     const eventCount = eventsForDate.length;
-    console.log('Events for date:', eventCount);
 
     timelineDays.value.push({
       date,
-      title: formattedDate, 
+      title: formattedDate.slice(5), // 显示 MM-DD
       hasEvent: eventCount > 0,
       eventCount,
     });
@@ -307,16 +320,16 @@ const generateTimeline = () => {
 };
 
 
+
 // 選擇事件
 const selectEvent = (item) => {
-  selectedEvent.value = item.id;
   const event = neoObjects.value.find((selectedEvent) => selectedEvent.des === item.name);
   if (event) {
     selectedEvent.value = event;
     drawEventComparison(event.dist_min, event.dist_max);
-    console.log('Selected event:', selectedEvent.value);
   }
 };
+
 
 const formatDateToDataFormat = (dateObj) => {
   const year = dateObj.getFullYear();
@@ -377,24 +390,17 @@ const onDateSelect = (date) => {
   currentDate.value = date;
   selectedDate.value = date;
 
-  const index = timelineDays.value.findIndex(d => d.date.toISOString() === date.toISOString());
-  if (index >= 0) {
-    timelineOffset.value = -index * 40; 
-  }
-
-  // 更新事件列表
+  scrollToCentralDate(date);
   updateEventList();
 };
 
 
-
-// 當組件掛載時取得資料並初始化時間軸
 onMounted(async () => {
   try {
-    const NEO_data = await fetchCADApi('2024-10-10', '2024-10-30', 0.2);
+    const NEO_data = await fetchCADApi('2024-10-10', '2024-10-30', 0.05);
     processData(NEO_data.data);
-    console.log('NEO data:', NEO_data.data);
     generateTimeline();
+    scrollToCentralDate(currentDate.value);
   } catch (error) {
     console.error('Error fetching NEO data:', error);
   }
@@ -403,6 +409,11 @@ const showEvent = (date) => {
   const formattedDate = date.date.toISOString().split('T')[0];
   selectedEvent.value = neoDataByDate.value[formattedDate]?.[0] || null;
 };
+
+window.addEventListener('resize', () => {
+  scrollToCentralDate(currentDate.value);
+});
+
 
 const openLink = (url) => {
   if (url) {
@@ -433,6 +444,35 @@ let days = 0;
     // 返回格式化字符串
     return `${days} d ${hours} h ${minutes} m`;
 };
+
+
+const scrollToCentralDate = (date) => {
+  const container = document.getElementById('timeline-container');
+  const markerWidth = 82; // 根据您的实际标记宽度调整
+  const index = timelineDays.value.findIndex(d => d.date.toISOString() === date.toISOString());
+
+  if (index >= 0) {
+    const markerOffset = index * markerWidth;
+    const containerWidth = container.offsetWidth;
+    let scrollToPosition = markerOffset - (containerWidth / 2) + (markerWidth / 2);
+
+    // 防止滚动超出左边界
+    if (scrollToPosition < 0) {
+      scrollToPosition = 0;
+    }
+
+    // 防止滚动超出右边界
+    const maxScrollPosition = (timelineDays.value.length * markerWidth) - containerWidth;
+    if (scrollToPosition > maxScrollPosition) {
+      scrollToPosition = maxScrollPosition;
+    }
+
+    timelineOffset.value = -scrollToPosition;
+  }
+};
+
+
+
 
 const drawEventComparison = (distance1, distance2) => {
   const canvas1 = comparisonCanvas1.value;
