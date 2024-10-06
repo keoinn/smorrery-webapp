@@ -126,15 +126,13 @@
     </div>
 
     <!-- 當前年份顯示 -->
-    <!-- <div id="year-display">{{ currentDate.getFullYear() }}</div> -->
+    <div id="year-display">{{ currentDate.getFullYear() }}</div>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { fetchCADApi } from '@/utils/APIRequests/apis/event.js';
-import { cos } from 'three/webgpu';
-import { log } from 'three/webgpu';
 const searchQuery = ref('');
 const neoObjects = ref([]);
 const neoDataByDate = ref({});
@@ -156,7 +154,7 @@ const comparisonCanvas2 = ref(null);
 const comparisonCanvas3 = ref(null);
 // const comparisonCanvas4 = ref(null);
 
-const markerWidth = 82; // 根据实际标记宽度调整
+const markerWidth = 82;
 
 const timelineWidth = computed(() => {
   return timelineDays.value.length * markerWidth;
@@ -209,7 +207,7 @@ const onMouseMove = (event) => {
 const onMouseUp = () => {
   isDragging.value = false;
   const totalMovement = timelineOffset.value - initialTimelineOffset;
-  const daysDiff = Math.round(-totalMovement / markerWidth); // 根据每个标记的宽度计算日期差
+  const daysDiff = Math.round(-totalMovement / markerWidth); 
 
   currentDate.value.setDate(currentDate.value.getDate() + daysDiff);
   generateTimeline();
@@ -283,7 +281,6 @@ const processData = (NEO_data) => {
     ];
     return obj;
   });
-  console.log("Parsed Objects: ", objects);
   neoObjects.value = objects;
 
 
@@ -317,14 +314,12 @@ const generateTimeline = () => {
 
     timelineDays.value.push({
       date,
-      title: formattedDate.slice(5), // 显示 MM-DD
+      title: formattedDate.slice(5), 
       hasEvent: eventCount > 0,
       eventCount,
     });
   }
 };
-
-
 
 // 選擇事件
 const selectEvent = (item) => {
@@ -333,7 +328,6 @@ const selectEvent = (item) => {
   if (event) {
     selectedEvent.value = event;
     drawEventComparison(event.dist);
-    console.log('Selected event:', selectedEvent.value);
   }
 };
 
@@ -360,6 +354,7 @@ const otherFields = computed(() => {
 // 更新事件列表，只包含當天的資料
 const updateEventList = () => {
   const formattedDate = parseDate(formatDateToDataFormat(selectedDate.value));
+  console.log('Formatted date:', formattedDate);
   eventList.value = neoDataByDate.value[formattedDate]?.map((item, index) => ({
     id: index,
     name: item.des,
@@ -384,6 +379,7 @@ const nextMonth = () => {
 const resetToToday = () => {
   currentDate.value = new Date();
   generateTimeline();
+  scrollToCentralDate(currentDate.value); 
   updateEventList();
 };
 
@@ -404,7 +400,7 @@ const onDateSelect = (date) => {
 
 onMounted(async () => {
   try {
-    const NEO_data = await fetchCADApi('2000-10-10', '2100-10-10', 0.05);
+    const NEO_data = await fetchCADApi('2020-10-10', '2030-10-10', 0.05);
     processData(NEO_data.data);
     generateTimeline();
     scrollToCentralDate(currentDate.value);
@@ -455,7 +451,6 @@ const formatFieldTime = (timeString) => {
 
 const scrollToCentralDate = (date) => {
   const container = document.getElementById('timeline-container');
-  const markerWidth = 82; // 根据您的实际标记宽度调整
   const index = timelineDays.value.findIndex(d => d.date.toISOString() === date.toISOString());
 
   if (index >= 0) {
@@ -563,6 +558,15 @@ const drawComparisonLine = (ctx, length) => {
 .date-marker:hover::before {
   opacity: 1;
 }
+
+#year-display {
+        position: absolute;
+        bottom: 40px;
+        left: 120px;
+        font-size: 28px;
+        opacity: 0.7;
+    }
+
 
 #timeline-controls {
   display: flex;
