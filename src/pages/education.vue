@@ -122,11 +122,30 @@ const recreatePaneBindings = () => {
           options[name] = name;
         });
       });
-      newPane
-        .addBinding(params, "selection", { options: options })
-        .on("change", (ev) => {
-          tweakpaneState.value.selectedBodies = [ev.value];
-        });
+      const binding = newPane.addBinding(params, "selection", {
+        options: options,
+      });
+
+      binding.on("change", (ev) => {
+        tweakpaneState.value.selectedBodies = [ev.value];
+      });
+
+      watch(searchKeyword, (newKeyword) => {
+        const filteredOptions = Object.entries(options).filter(([key]) =>
+          key.toLowerCase().includes(newKeyword.toLowerCase())
+        );
+
+        const newOptionValues = filteredOptions.map(([key, value]) => ({
+          text: key,
+          value: value,
+        }));
+
+        binding.controller.valueController.props.set(
+          "options",
+          newOptionValues
+        );
+        binding.refresh();
+      });
     }
   }
 };
@@ -277,7 +296,7 @@ onMounted(() => {
   });
 
   education_scene.start();
-  topicController.value.setTopic(topics.value[2], education_scene);
+  topicController.value.setTopic(topics.value[0], education_scene);
   celestialBodies.value = education_scene.availableCategories;
   watch(tweakpaneState.value, handlePaneChaned);
 
