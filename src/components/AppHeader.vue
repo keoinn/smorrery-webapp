@@ -1,3 +1,6 @@
+<script>
+import open_music_img from "@/assets/images/open_music.png";
+</script>
 <template>
   <div class="navigation-container">
     <div class="navigation-bar">
@@ -8,16 +11,19 @@
         <span @click="$router.push('/events')"> Event </span>
       </div>
       <div class="navigation-text text-wrapper-3">
-        <span @click="$router.push('/orrery')"> Lab </span>
+        <span @click="$router.push('/lab')"> Lab </span>
       </div>
       <div class="navigation-text text-wrapper-4">
-        <span @click="$router.push('/orrery')"> Challenge </span>
+        <span @click="$router.push('/challenge')"> Challenge </span>
       </div>
       <div class="navigation-text text-wrapper-5">
-        <span @click="$router.push('/orrery')"> Tour </span>
+        <span @click="$router.push('/tour')"> Tour </span>
       </div>
       <div class="navigation-text text-wrapper-6">
-        <span @click="$router.push('/orrery')"> About </span>
+        <span @click="$router.push('/about')"> About </span>
+      </div>
+      <div class="navigation-text text-wrapper-7">
+        <v-btn icon="mdi-music-note-off" size="x-small"></v-btn>
       </div>
     </div>
   </div>
@@ -85,6 +91,11 @@
 
   .text-wrapper-6 {
     left: 594px;
+  }
+
+  .text-wrapper-7 {
+    left: 670px;
+    top: -5px;
   }
 }
 </style>
