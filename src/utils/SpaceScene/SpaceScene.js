@@ -4,7 +4,6 @@ import { createBackground, CelestialBody } from "./components/objects.js";
 import { SUN_DATA, PLANETS_DATA } from "./utils/constants.js";
 import { Resizer } from "./core/Resizer.js";
 
-const CelestialObjects = []; // FOR UNIFIED MANAGEMENT  // TO DO: INSERT CELESTIAL OBJECT DATA
 
 class SpaceScene extends EmptyScene {
   constructor(container) {
@@ -34,12 +33,12 @@ class SpaceScene extends EmptyScene {
       if (data.name.toUpperCase() !== 'SUN') {
         this.loop.updatables.push(body.container);
       }
-      CelestialObjects.push(body);
+      this.CelestialObjects.push(body);
     });
   };
 
   clearTrace() {
-    CelestialObjects.forEach(body => {
+    this.CelestialObjects.forEach(body => {
       if (body.name.toUpperCase() !== 'SUN') {
         body.trace = [];  
       }
@@ -49,7 +48,7 @@ class SpaceScene extends EmptyScene {
   // 天體軌跡記錄啟動
   set OrbitingRecordTrace (flag) {
     const st = (flag === true)? true : false;
-    CelestialObjects.forEach(body => {
+    this.CelestialObjects.forEach(body => {
       // console.log(body.name, body.isTraced, st);  // for debug only  // TO DO: INSERT CELESTIAL OBJECT DATA
       body.isTraced = st
       if(!st) {
@@ -57,6 +56,7 @@ class SpaceScene extends EmptyScene {
       }
     })
   }
+  
 }
 
 export { SpaceScene };

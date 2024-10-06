@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch, computed, reactive} from "vue";
+import { ref, onMounted, onBeforeUnmount, watch, computed, reactive} from "vue";
 import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
 import { fetchCadApi, fetchSbdbApi } from '@/utils/APIRequests/apis/event.js';
 import { parseSmallBodiesData } from "@/utils/APIRequests/preprocessor.js";
@@ -13,18 +13,11 @@ const CAD_MAX_DIST = '0.05';
 let space_scene;
 const target = ref();
 
-// 畫布啟動
-const scene_st = ref(false);
-// 播放
-const control_st = ref(false);
-// 前進與倒退
-const forward_st = ref(true);
-
-// 軌跡
-const isTraced = ref(false);
-
-// Speed
-const timeSpeed = ref(1.0);
+const scene_st = ref(false);  // Space Scene active or not
+const control_st = ref(false);  // Control Bar active or not
+const forward_st = ref(true);  // Animation forward or backward
+const timeSpeed = ref(1.0);  // Animation speed
+const isTraced = ref(false);  // Orbit tracing enable or not
 
 //currentDate
 const currentDate = ref(946728000000)
@@ -111,40 +104,58 @@ const toggleMute = () => {
   backgroundMusic.value.muted = isMuted.value;
 };
 
-onMounted(() => {
-  const target_s = document.querySelector("#target");
-  space_scene = new SpaceScene(target_s);
-});
-
 onMounted(async () => {
   try {
-    // Use fetchSbdbApi to fetch NEO data
-    const sbdbResponse = await fetchSbdbApi(NEO_AMOUNT); // Get 200
-    console.log('Fetched data:', sbdbResponse.data.data.length, 'NEOs.');
-    neoData = sbdbResponse.data; 
+    // Setup scene
+    const target_s = document.querySelector("#target");  // Find the target element
+    space_scene = new SpaceScene(target_s);
+    
+    // Start rendering the scene
+    space_scene.start();
 
-    let smallBodiesData = parseSmallBodiesData(neoData);
-    console.log(smallBodiesData);
-    space_scene.generateObjects(smallBodiesData);
+    // Fetch NEO data from SBDB API
+    try {
+      const sbdbResponse = await fetchSbdbApi(NEO_AMOUNT); // Get 200
+      console.log('Fetched data:', sbdbResponse.data.data.length, 'NEOs.');
+      neoData = sbdbResponse.data;
 
-    // Use fetchCadApi to fetch Close-Aproach Data      // in AU
-    const cadResponse = await fetchCadApi(CAD_MIN_DATE, CAD_MAX_DATE, CAD_MAX_DIST);
-    console.log('Fetched data:', cadResponse.data.data.length, 'close-approach events.');
-    cadData = cadResponse.data;
+      let smallBodiesData = parseSmallBodiesData(neoData);
+      console.log(smallBodiesData);
+      space_scene.generateObjects(smallBodiesData);
+    } catch (error) {
+      console.error('Error fetching NEO data:', error);
+    }
 
-    // console.log(neoData);
+    // Fetch Close-Aproach event data from CAD API
+    try {
+      const cadResponse = await fetchCadApi(CAD_MIN_DATE, CAD_MAX_DATE, CAD_MAX_DIST);
+      console.log('Fetched data:', cadResponse.data.data.length, 'close-approach events.');
+      cadData = cadResponse.data;
+    } catch (error) {
+      console.error('Error fetching CAD data:', error);
+    }
+
+    // Watch for current date changes
+    watch(space_scene.loop.currentDate_ref, (val) => {
+      currentDate.value = val;
+    });
+
+    // Background music mute state
+    backgroundMusic.value.muted = isMuted.value;
+
+    // Add keyboard event listener for controlling labels and camera movement
+    window.addEventListener('keydown', space_scene.addKeyboardControls());
 
   } catch (error) {
-    console.error('Error fetching data:', error);
+    console.error('Error setting up scene or rendering:', error);
   }
-
-  watch(space_scene.loop.currentDate_ref, (val) => {
-    currentDate.value = val
-  });
-
-  backgroundMusic.value.muted = isMuted.value;
 });
 
+// Cleanup when the component is unmounted
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', space_scene.addKeyboardControls());  // Cleanup keyboard listener
+  space_scene.stop();  // Stop the scene rendering
+});
 
 
 </script>
