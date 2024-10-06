@@ -6,11 +6,11 @@ import { createControls } from "./core/controls.js";
 
 class EmptyScene {
   constructor(container) {
-    this.container_width = window.innerWidth;
-    this.container_height = window.innerHeight;
+    this.container_width = container.clientWidth;
+    this.container_height = container.clientHeight;
 
     // 初始建構
-    this.timeDirection = 1; // 控制計算時間差
+    this.timeDirection = 1; // 1: forward, -1: backward
     this.timeScale = 1; // 控制時間差倍率
     this.isPlayed = 1; // 是否計算下一幀差異
     

@@ -1,6 +1,14 @@
 <script setup>
 import { ref, onMounted, watch, computed, reactive} from "vue";
 import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
+import { fetchCadApi, fetchSbdbApi } from '@/utils/APIRequests/apis/event.js';
+import { parseSmallBodiesData } from "@/utils/APIRequests/preprocessor.js";
+import backgroundmusic from '@/assets/backgroundmusic.wav'
+
+const NEO_AMOUNT = 10;
+const CAD_MIN_DATE = '2024-01-01';
+const CAD_MAX_DATE = '2025-01-01';
+const CAD_MAX_DIST = '0.05';  
 
 let space_scene;
 const target = ref();
@@ -13,7 +21,7 @@ const control_st = ref(false);
 const forward_st = ref(true);
 
 // 軌跡
-const isTrace = ref(false);
+const isTraced = ref(false);
 
 // Speed
 const timeSpeed = ref(1.0);
@@ -21,16 +29,25 @@ const timeSpeed = ref(1.0);
 //currentDate
 const currentDate = ref(946728000000)
 
+// Data Fetch
+let neoData;  // from SBDB API response
+let cadData;  // from CAD API response
+
+// 背景音樂播放
+const backgroundMusic = ref(false);
+const isMuted = ref(true);
 
 
 // 畫布啟動關閉 -> 畫面渲染
 const controlStatusScene = () => {
   scene_st.value = !scene_st.value;
+
   if (scene_st.value) {
     space_scene.start();
+    backgroundMusic.value.play();
   } else {
     space_scene.stop();
-  }
+  } 
 };
 
 // Control Bar Action
@@ -53,30 +70,28 @@ const forwardControlChange = () => {
   space_scene.clearTrace();
 };
 
-const changeIsTraceStatus = () => {
-  isTrace.value = !isTrace.value;
-  space_scene.OrbitingRecordTrace = isTrace.value;
-  console.log(space_scene.orbitingObjects);
+const changeisTracedStatus = () => {
+  isTraced.value = !isTraced.value;
+  space_scene.OrbitingRecordTrace = isTraced.value;
+  console.log(`Trace status = ${isTraced.value}`); // <--- TEST
 };
 
 const dateShift = (val) => {
   space_scene.loop.shiftDate = val
-  isTrace.value = false
-  space_scene.OrbitingRecordTrace = isTrace.value;
+  isTraced.value = false
+  space_scene.OrbitingRecordTrace = isTraced.value;
   space_scene.clearTrace();
   
 }
 
 watch(timeSpeed, (val) => {
-  console.log(val);
+  // console.log(`Speed = ${val}x`); // TEST: log the new speed value
   space_scene.loop.timeScaleRate = val;
 });
 
 
-// 顯示小數點
 const showFixedSpeedVal = (val) => {
-  const val_int = parseFloat(val);
-  return val_int;
+  return parseFloat(val);
 };
 
 // 計算日期字串
@@ -91,15 +106,47 @@ const showJDText = (val) => {
   return ((val / 86400000) + 2440587.5).toFixed(2);
 }
 
+const toggleMute = () => {
+  isMuted.value = !isMuted.value;
+  backgroundMusic.value.muted = isMuted.value;
+};
+
 onMounted(() => {
   const target_s = document.querySelector("#target");
   space_scene = new SpaceScene(target_s);
+});
+
+onMounted(async () => {
+  try {
+    // Use fetchSbdbApi to fetch NEO data
+    const sbdbResponse = await fetchSbdbApi(NEO_AMOUNT); // Get 200
+    console.log('Fetched data:', sbdbResponse.data.data.length, 'NEOs.');
+    neoData = sbdbResponse.data; 
+
+    let smallBodiesData = parseSmallBodiesData(neoData);
+    console.log(smallBodiesData);
+    space_scene.generateObjects(smallBodiesData);
+
+    // Use fetchCadApi to fetch Close-Aproach Data      // in AU
+    const cadResponse = await fetchCadApi(CAD_MIN_DATE, CAD_MAX_DATE, CAD_MAX_DIST);
+    console.log('Fetched data:', cadResponse.data.data.length, 'close-approach events.');
+    cadData = cadResponse.data;
+
+    console.log(neoData);
+
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
 
   watch(space_scene.loop.currentDate_ref, (val) => {
     currentDate.value = val
   });
 
+  backgroundMusic.value.muted = isMuted.value;
 });
+
+
+
 </script>
 
 <template>
@@ -132,8 +179,8 @@ onMounted(() => {
       <v-btn
         class="video-btn text-none"
         :disabled="!scene_st || !control_st"
-        :prepend-icon="isTrace === true ? `mdi-stop-circle` : `mdi-record`"
-        @click="changeIsTraceStatus"
+        :prepend-icon="isTraced === true ? `mdi-stop-circle` : `mdi-record`"
+        @click="changeisTracedStatus"
         text="Trace"
         size="small"
       />
@@ -170,15 +217,25 @@ onMounted(() => {
 
       <span class="info-text">{{ showDateString(currentDate) }}</span>
       <span class="info-text"> JD {{ showJDText(currentDate) }}</span>
+
+      <v-btn
+        class="video-btn"
+        :icon="isMuted ? `mdi-volume-off` : `mdi-volume-high`"
+        @click="toggleMute"
+        size="small"
+      />
+      <audio ref="backgroundMusic" :src="backgroundmusic" autoplay loop style="display:none;"></audio>
     </div>
   </div>
 </template>
 
 <style lang="scss">
 #target {
+  // remove 50px from AppHeaderLogo
+  height: calc(100vh - 50px);
   #info {
     position: absolute;
-    top: 10%;
+    top: 13%;
     width: 100%;
     text-align: center;
     color: white;

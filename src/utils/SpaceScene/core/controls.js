@@ -1,5 +1,5 @@
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-let spaceScale = 20
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { SPACE_SCALE } from "../utils/constants";
 
 function createControls(camera, canvas) {
   const controls = new OrbitControls(camera, canvas);
@@ -7,8 +7,8 @@ function createControls(camera, canvas) {
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
   controls.screenSpacePanning = false;
-  controls.minDistance = spaceScale * 0.1;
-  controls.maxDistance = spaceScale * 40;
+  controls.minDistance = SPACE_SCALE * 0.1;
+  controls.maxDistance = SPACE_SCALE * 40;
 
   // forward controls.update to our custom .tick method
   controls.tick = () => controls.update();
