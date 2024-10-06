@@ -1,11 +1,11 @@
 import Kepler1stLawPage from "@/components/topics/Kepler1stLawPage.vue";
 import { EmptyTopic } from "./EmptyTopic";
 import { J2000 } from "../utils/constants";
-import { createOrbitingObject } from "../components/objects";
+import { CelestialBody } from "../components/objects";
 
 let custom_planet = {
   name: "custom planet",
-  orbitalElements: {
+  orbitalParameters: {
     a: 1,
     e: 0.20563593,
     i: 7.00497902,
@@ -18,8 +18,9 @@ let custom_planet = {
   radius: 0.383, // Radius
   mass: 0.055, // Mass relative to Earth
   category: "custom",
-  isTrace: false,
+  isTraced: false,
 };
+
 export class Kepler1stLaw extends EmptyTopic {
   constructor() {
     super("Kepler's First Law", Kepler1stLawPage, true);
@@ -32,17 +33,17 @@ export class Kepler1stLaw extends EmptyTopic {
       ma: 174.796,
       epoch: J2000,
     };
-    custom_planet.orbitalElements = this.params;
+    custom_planet.orbitalParameters = this.params;
   }
 
   onEnter(scene, camera, loop) {
     super.onEnter(scene, camera, loop);
     // camera.position.set(0, 0, 100);
 
-    const orbitingObject = createOrbitingObject(custom_planet);
+    const orbitingObject = CelestialBody(scene, custom_planet);
     this.scene.add(orbitingObject);
     this.loop.updatables.push(orbitingObject);
-    custom_planet.isTrace = true;
+    custom_planet.isTraced = true;
     orbitingObject.name = "HI";
   }
   //TODO:

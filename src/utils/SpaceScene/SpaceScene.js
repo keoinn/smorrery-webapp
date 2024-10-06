@@ -1,7 +1,7 @@
 import { EmptyScene } from "./EmptyScene.js";
 import { createLightSource } from "./components/light.js";
 import { createBackground, CelestialBody } from "./components/objects.js";
-import { SUN_DATA, PLANETS_DATA, SSS_TEXTURES } from "./utils/constants.js";
+import { SUN_DATA, PLANETS_DATA } from "./utils/constants.js";
 import { Resizer } from "./core/Resizer.js";
 
 const CelestialObjects = []; // FOR UNIFIED MANAGEMENT  // TO DO: INSERT CELESTIAL OBJECT DATA
@@ -20,10 +20,7 @@ class SpaceScene extends EmptyScene {
     })
 
     // Celestial objects
-    const sun = new CelestialBody(this.scene, SUN_DATA, SSS_TEXTURES);
-    this.scene.add(sun.container);
-    console.log('Created', sun.name);
-
+    this.generateObjects([SUN_DATA]);
     this.generateObjects(PLANETS_DATA);
 
     // const resizer = new Resizer(container, this.camera, this.renderer);
@@ -31,7 +28,7 @@ class SpaceScene extends EmptyScene {
 
   generateObjects(dataset) {
     return dataset.forEach((data) => {
-      const body = new CelestialBody(this.scene, data, SSS_TEXTURES);
+      const body = new CelestialBody(this.scene, data);
       console.log('Created', body.name);
       this.scene.add(body.container);
       this.loop.updatables.push(body.container);

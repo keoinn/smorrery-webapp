@@ -1,12 +1,7 @@
-import {
-  createSun,
-  createOrbitingObject,
-  createBackground,
-} from "./components/objects.js";
-
 import { EmptyScene } from "./EmptyScene.js";
+import { CelestialBody, createBackground } from "./components/objects.js";
 import { createLightSource } from "./components/light.js";
-import { PLANETS_DATA } from "./utils/constants.js";
+import { SUN_DATA, PLANETS_DATA, SSS_TEXTURES } from "./utils/constants.js";
 
 //TODO: add camera movement
 class EducationScene extends EmptyScene {
@@ -23,8 +18,8 @@ class EducationScene extends EmptyScene {
     });
 
     // Celestial objects
-    const sun = createSun();
-    this.scene.add(sun);
+    const sun = new CelestialBody(this.scene, SUN_DATA);
+    this.scene.add(sun.container);
 
     this.smallBodies = [];
     // 行星
@@ -60,10 +55,11 @@ class EducationScene extends EmptyScene {
   addCelestialBody(bodyName) {
     const body = this.orbitingObjects.find((obj) => obj.name === bodyName);
     if (body) {
-      const orbitingObject = createOrbitingObject(body);
-      this.scene.add(orbitingObject);
-      this.loop.updatables.push(orbitingObject);
-      this.objects3d.push(orbitingObject);
+      const orbitingObject = new CelestialBody(this.scene, body);
+      const container = orbitingObject.container
+      this.scene.add(container);
+      this.loop.updatables.push(container);
+      this.objects3d.push(container);
       orbitingObject.name = bodyName;
     }
   }
