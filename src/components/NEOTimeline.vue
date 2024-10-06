@@ -478,38 +478,6 @@ const scrollToCentralDate = (date) => {
   }
 };
 
-
-
-
-
-const scrollToCentralDate = (date) => {
-  const container = document.getElementById('timeline-container');
-  const markerWidth = 82; // 根据您的实际标记宽度调整
-  const index = timelineDays.value.findIndex(d => d.date.toISOString() === date.toISOString());
-
-  if (index >= 0) {
-    const markerOffset = index * markerWidth;
-    const containerWidth = container.offsetWidth;
-    let scrollToPosition = markerOffset - (containerWidth / 2) + (markerWidth / 2);
-
-    // 防止滚动超出左边界
-    if (scrollToPosition < 0) {
-      scrollToPosition = 0;
-    }
-
-    // 防止滚动超出右边界
-    const maxScrollPosition = (timelineDays.value.length * markerWidth) - containerWidth;
-    if (scrollToPosition > maxScrollPosition) {
-      scrollToPosition = maxScrollPosition;
-    }
-
-    timelineOffset.value = -scrollToPosition;
-  }
-};
-
-
-
-
 const km = 1000000/149597871
 const drawEventComparison = (distance) => {
   // 1 AU = 149597871 km
