@@ -1,9 +1,7 @@
 <template>
-  <ExplorationHero />
+  <HomeModuleLink />
 </template>
 
 <script setup>
-import ExplorationHero from '@/components/ExplorationHero.vue';
-
-  //
+import HomeModuleLink from '@/components/HomeModuleLink.vue';
 </script>
