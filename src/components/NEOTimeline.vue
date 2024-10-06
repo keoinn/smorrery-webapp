@@ -221,8 +221,9 @@ const parseDate = (dateStr) => {
   return `${year}-${month}-${day}`;
 };
 
-// 處理資料
+
 const processData = (NEO_data) => {
+  console.log("Received NEO Data: ", NEO_data);
   const fieldsArray = NEO_data.fields;
   fields.value = fieldsArray;
   const data = NEO_data.data;
@@ -239,7 +240,7 @@ const processData = (NEO_data) => {
     ];
     return obj;
   });
-
+  console.log("Parsed Objects: ", objects);
   neoObjects.value = objects;
 
 
@@ -289,14 +290,6 @@ const generateTimeline = () => {
   }
 };
 
-// 選擇事件
-const selectEvent = (item) => {
-  selectedEvent.value = item.id;
-  const event = neoObjects.value.find((selectedEvent) => selectedEvent.cd === item.name.split(' for ')[1]);
-  if (event) {
-    neo.value = event;
-  }
-};
 
 
 const formatDateToDataFormat = (dateObj) => {
@@ -324,13 +317,22 @@ const neosForSelectedDate = computed(() => {
   return neoDataByDate.value[formattedDate] || [];
 });
 
+// 選擇事件
+const selectEvent = (item) => {
+  selectedEvent.value = item.id;
+  const event = neoObjects.value.find((selectedEvent) => selectedEvent.des === item.name);
+  if (event) {
+    selectedEvent.value = event;
+  }
+};
+
 
 // 更新事件列表，只包含當天的資料
 const updateEventList = () => {
   const formattedDate = parseDate(formatDateToDataFormat(selectedDate.value));
   eventList.value = neoDataByDate.value[formattedDate]?.map((item, index) => ({
     id: index,
-    name: `Event for ${item.cd}`,
+    name: item.des,
   })) || [];
 };
 
