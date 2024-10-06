@@ -6,6 +6,7 @@ import { fetchCadApi, fetchSbdbApi } from '@/utils/APIRequests/apis/event.js';
 import { parseSmallBodiesData } from "@/utils/APIRequests/preprocessor.js";
 import { J2000, J1970 } from "@/utils/SpaceScene/utils/constants.js";
 import backgroundmusic from '@/assets/backgroundmusic.wav'
+import KeyboardShortcuts from '@/pages/keyboard_shortcuts.vue';
 
 const NEO_AMOUNT = 10;
 const CAD_MIN_DATE = '2024-01-01';
@@ -20,6 +21,7 @@ const isPlaying = ref(false);  // Control Bar active or not
 const isForward = ref(true);  // Animation forward or backward
 const isTraced = ref(false);  // Orbit tracing enable or not
 const isLabled = ref(false);  // Lable visible or not
+const showShortcuts = ref(false);
 
 //currentDate
 const currentDate = ref(946728000000)
@@ -76,7 +78,6 @@ function toggleLabels() {
 
 const shiftDateAndClearTraces = (val) => {
   space_scene.loop.shiftDate = val
-  isTraced.value = false;
   space_scene.OrbitingRecordTrace = isTraced.value;
   space_scene.clearTrace();
 }
@@ -232,7 +233,14 @@ function handleKeydown(event) {
     case 'M': 
       toggleMute();
       break;
+    case 'I': 
+    toggleShortcuts();
+      break;
   }
+}
+
+const toggleShortcuts = () => {
+  showShortcuts.value = !showShortcuts.value;
 }
 
 </script>
@@ -243,59 +251,104 @@ function handleKeydown(event) {
       <!-- Interactive 3D Orrery<br />Drag to rotate, scroll to zoom -->
     </div>
     <div id="timeControl">
-      <v-btn
-        class="video-btn text-none"
-        @click="toggleSceneStatus"
-        :text="isRunning === true ? `Stop` : `Run`"
-        size="small"
-      />
-      <v-btn
-        class="video-btn"
-        :disabled="!isRunning"
-        :icon="isPlaying === true ? `mdi-pause` : `mdi-play`"
-        @click="togglePlayPause"
-        size="small"
-      />
-      <v-btn
-        class="video-btn"
-        :disabled="!isRunning"
-        :icon="isForward === true ? `mdi-skip-backward` : `mdi-skip-forward`"
-        @click="toggleForwardBackard"
-        size="small"
-      />
-      <v-btn
-        class="video-btn text-none"
-        :disabled="!isRunning || !isPlaying"
-        :prepend-icon="isTraced === true ? `mdi-checkbox-marked` : `mdi-checkbox-blank-outline`"
-        @click="toggleTraces"
-        text="Trace"
-        size="small"
-      />
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="video-btn text-none"
+            v-bind="attrs" v-on="on"
+            @click="toggleSceneStatus"
+            :text="isRunning === true ? `Stop` : `Run`"
+            size="small"
+          />
+        </template>
+        <span>Start/Stop the scene (Shortcut: S)</span>
+      </v-tooltip>
 
-      <v-btn
-        class="video-btn text-none"
-        :disabled="!isRunning || !isPlaying"
-        :prepend-icon="isLabled === true ? `mdi-checkbox-marked` : `mdi-checkbox-blank-outline`"
-        @click="toggleLabels"
-        text="Label"
-        size="small"
-      />
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="video-btn"
+            v-bind="attrs" v-on="on"
+            :disabled="!isRunning"
+            :icon="isPlaying === true ? `mdi-pause` : `mdi-play`"
+            @click="togglePlayPause"
+            size="small"
+          />
+        </template>
+        <span>Play/Pause (Shortcut: Space)</span>
+      </v-tooltip>
 
-      <!-- <v-btn
-        class="video-btn text-none"
-        :disabled="!isRunning"
-        text="J2000"
-        size="small"
-        @click="jumpToJ2000"
-      /> -->
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="video-btn"
+            v-bind="attrs" v-on="on"
+            :disabled="!isRunning"
+            :icon="isForward === true ? `mdi-skip-backward` : `mdi-skip-forward`"
+            @click="toggleForwardBackard"
+            size="small"
+          />
+        </template>
+        <span>Forward/Backward (Shortcut: F)</span>
+      </v-tooltip>
 
-      <v-btn
-        class="video-btn text-none"
-        :disabled="!isRunning"
-        text="Today"
-        size="small"
-        @click = "jumpToToday"
-      />
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="video-btn text-none"
+            v-bind="attrs" v-on="on"
+            :disabled="!isRunning || !isPlaying"
+            :prepend-icon="isTraced === true ? `mdi-checkbox-marked` : `mdi-checkbox-blank-outline`"
+            @click="toggleTraces"
+            text="Trace"
+            size="small"
+          />
+        </template>
+        <span>Toggle trace (Shortcut: T)</span>
+      </v-tooltip>
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="video-btn text-none"
+            v-bind="attrs" v-on="on"
+            :disabled="!isRunning || !isPlaying"
+            :prepend-icon="isLabled === true ? `mdi-checkbox-marked` : `mdi-checkbox-blank-outline`"
+            @click="toggleLabels"
+            text="Label"
+            size="small"
+          />
+        </template>
+        <span>Toggle labels (Shortcut: L)</span>
+      </v-tooltip>
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="video-btn text-none"
+            v-bind="attrs" v-on="on"
+            :disabled="!isRunning"
+            text="J2000"
+            size="small"
+            @click="jumpToJ2000"
+          />
+        </template>
+        <span>Jump to J2000 (Shortcut: G)</span>
+      </v-tooltip>
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="video-btn text-none"
+            v-bind="attrs" v-on="on"
+            :disabled="!isRunning"
+            text="Today"
+            size="small"
+            @click="jumpToToday"
+          />
+        </template>
+        <span>Jump to Today (Shortcut: H)</span>
+      </v-tooltip>
 
       <div class="speedControl">
         <label for="speedSlider">Speed:</label>
@@ -312,16 +365,39 @@ function handleKeydown(event) {
       </div>
 
       <span class="info-text">{{ showDateString(currentDate) }}</span>
-      <!-- <span class="info-text"> JD {{ showJDText(currentDate) }}</span> -->
 
-      <v-btn
-        class="video-btn"
-        :icon="isMuted ? `mdi-volume-off` : `mdi-volume-high`"
-        @click="toggleMute"
-        size="small"
-      />
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="video-btn"
+            v-bind="attrs" v-on="on"
+            :icon="isMuted ? `mdi-volume-off` : `mdi-volume-high`"
+            @click="toggleMute"
+            size="small"
+          />
+        </template>
+        <span>Toggle mute (Shortcut: M)</span>
+      </v-tooltip>
+
+      <v-tooltip bottom>
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="video-btn"
+            v-bind="attrs" v-on="on"
+            :icon="`mdi-information`"
+            size="small"
+            @click="toggleShortcuts"
+          />
+        </template>
+        <span>Show keyboard shortcuts (Shortcut: ?)</span>
+      </v-tooltip>
+
+
       <audio ref="backgroundMusic" :src="backgroundmusic" autoplay loop style="display:none;"></audio>
     </div>
+
+    <KeyboardShortcuts v-if="showShortcuts" />
+
   </div>
 </template>
 
