@@ -285,6 +285,7 @@ const topicIndex = computed(() => {
 watch(topicIndex, (newIndex) => {
   if (topicController.value && education_scene) {
     topicController.value.setTopic(topics.value[newIndex], education_scene);
+    window.location.reload();
   }
 });
 
