@@ -19,6 +19,7 @@ function createLabelRenderer(width, height) {
   labelRenderer.setSize(width, height)
   labelRenderer.domElement.style.position = 'absolute';
   labelRenderer.domElement.style.top = '0px';
+  labelRenderer.domElement.style.zIndex = '1';
 
   return labelRenderer
 }

@@ -33,9 +33,13 @@ class EmptyScene {
     container.append(this.renderer.domElement);
     container.append(this.labelRenderer.domElement);
 
+    // Array of celestial objects, for handling visiblity of visual components
+    this.CelestialObjects = [];
+
     // 畫面控制器
     const controls = createControls(this.camera, this.labelRenderer.domElement);
     this.loop.updatables.push(controls);
+
   }
 
   // Manual control of single-frame rendering of the scene; temporarily unused

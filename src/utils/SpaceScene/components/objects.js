@@ -250,6 +250,7 @@ class CelestialBody {
       (this.radius * RADIUS_SCALE) + 0.5, 
       0
     );
+    label.visible = false;  // Hide the label initially
   
     // Attach the label to the mesh
     mesh.add(label);
@@ -471,12 +472,10 @@ class CelestialBody {
         this.orbit = this.createOrbit(300, true);  // Create orbit with 300 points and visibility set to true
         this.orbitalPlane = this.addOrbitalPlane(this.orbitalParameters.h_vec, true);  // Create orbital plane
         this.orbitalVectors = this.addOrbitalVectors(true);  // Create orbital vectors
-        this.label.visible = true;
     } 
     // Otherwise, just create the orbit (default behavior for planets, moons, etc.)
     else { 
         this.orbit = this.createOrbit(100, true);
-        this.label.visible = true;
     }
   }
 }
