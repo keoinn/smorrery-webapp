@@ -1,10 +1,14 @@
 import Kepler1stLawPage from "@/components/topics/Kepler1stLawPage.vue";
 import { EmptyTopic } from "./EmptyTopic";
 import { J2000 } from "../utils/constants";
-import { CelestialBody } from "../components/objects";
+import { Mesh } from "three/build/three.module";
+import { PlaneGeometry } from "three/build/three.module";
+import { MeshBasicMaterial } from "three/build/three.module";
+import { DoubleSide } from "three";
+import { CustomCelestialBody } from "../components/CustomCelestialBody";
 
 let custom_planet = {
-  name: "custom planet",
+  name: "Your Planet",
   orbitalParameters: {
     a: 1,
     e: 0.20563593,
@@ -31,6 +35,8 @@ export class Kepler1stLaw extends EmptyTopic {
       w: 77.45779628,
       ma: 174.796,
       epoch: J2000,
+      showPlane: false,
+      showOrbit: true,
     };
     custom_planet.orbitalParameters = this.params;
   }
@@ -39,11 +45,28 @@ export class Kepler1stLaw extends EmptyTopic {
     super.onEnter(scene, camera, loop);
     // camera.position.set(0, 0, 100);
 
-    this.orbitingObject = new CelestialBody(this.scene, this.camera, custom_planet);
+    this.orbitingObject = new CustomCelestialBody(
+      this.scene,
+      this.camera,
+      custom_planet
+    );
     this.scene.add(this.orbitingObject.container);
     this.loop.updatables.push(this.orbitingObject.container);
     this.orbitingObject.isTraced = true;
     this.orbitingObject.name = "HI";
+    console.log(this.orbitingObject);
+    this.eclipticPlane = new Mesh(
+      new PlaneGeometry(1200, 1200),
+      new MeshBasicMaterial({
+        color: 0xffffff,
+        side: DoubleSide,
+        transparent: true,
+        opacity: 0.1,
+      })
+    );
+    this.eclipticPlane.rotateX(Math.PI / 2);
+    this.eclipticPlane.visible = this.params.showPlane;
+    this.scene.add(this.eclipticPlane);
   }
 
   onExit() {
@@ -56,7 +79,7 @@ export class Kepler1stLaw extends EmptyTopic {
   //TODO:
   // 1. adjust min and max
   // 2. handle e > 1
-  // 3. change color
+  // 4. consider reset date
   addPane(_pane) {
     const pane = _pane.addFolder({ title: "Orbital Elements" });
     const data = {
@@ -100,7 +123,17 @@ export class Kepler1stLaw extends EmptyTopic {
     Object.keys(data).forEach((key) => {
       pane.addBinding(this.params, key, data[key]).on("change", () => {
         this._clearTrace();
+        this.orbitingObject._updateOrbit();
       });
+    });
+    pane.addBinding(this.params, "showPlane", { label: "Show Ecliptic Plane" }).on("change", (ev) => {
+      this.eclipticPlane.visible = ev.value;
+    });
+    pane.addBinding(this.params, "showOrbit", { label: "Show Orbit" }).on("change", (ev) => {
+      this.orbitingObject.orbit.visible = ev.value;
+      if (!ev.value) {
+        this.orbitingObject.trace = [];
+      }
     });
   }
 

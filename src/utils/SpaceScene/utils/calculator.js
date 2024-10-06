@@ -54,7 +54,7 @@ const calcOrbitalPeroid = (a) => {
 };
 
 // Calculate the Orbital Rotation Matrix based on the Orbital Elements.
-const getOrbitalRotationMatrix = (i, Omega, w) => {
+export const getOrbitalRotationMatrix = (i, Omega, w) => {
   const rotationMatrix = new Matrix4();
 
   // Rotate by Ω (Longitude of Ascending Node) around Y axis

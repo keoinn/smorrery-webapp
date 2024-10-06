@@ -29,7 +29,8 @@ import {
   MAX_TRACE_STEPS,
 } from "@/utils/SpaceScene/utils/constants.js";
 
-import { calcOrbitalPeroid, calcPosition } from "@/utils/SpaceScene/utils/calculator.js";
+import { calcOrbitalPeroid, calcPosition, getOrbitalRotationMatrix } from "@/utils/SpaceScene/utils/calculator.js";
+import { EllipseCurve } from "three";
 
 const SCENE_SIZE = 1200;
 
@@ -338,7 +339,7 @@ class CelestialBody {
    */
   createOrbit(numPoints = 100, visible = false) {
       const { a, e, i, om, w } = this.orbitalParameters;
-      const aScaled = a * spaceScale;
+      const aScaled = a * SPACE_SCALE;
       
       let points = [];
       if (e >= 0 && e < 1) {
@@ -390,7 +391,8 @@ class CelestialBody {
       orbitContainer.add(orbitLine);
   
       // Apply orbital rotations to align the orbit in 3D space
-      rotateOrbit(orbitContainer, i, om, w);
+      const rotationMatrix = getOrbitalRotationMatrix(i, om, w);
+      orbitContainer.applyMatrix4(rotationMatrix);
   
       orbitContainer.visible = visible;
       // this.scene.add(orbitContainer);
