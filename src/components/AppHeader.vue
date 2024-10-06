@@ -5,7 +5,7 @@
         <span @click="$router.push('/orrery')"> Education </span>
       </div>
       <div class="navigation-text text-wrapper-2">
-        <span @click="$router.push('/orrery')"> Event </span>
+        <span @click="$router.push('/events')"> Event </span>
       </div>
       <div class="navigation-text text-wrapper-3">
         <span @click="$router.push('/orrery')"> Lab </span>

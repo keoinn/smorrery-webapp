@@ -1,7 +1,14 @@
 import { EmptyScene } from "./EmptyScene.js";
 import { CelestialBody, createBackground } from "./components/objects.js";
 import { createLightSource } from "./components/light.js";
-import { SUN_DATA, PLANETS_DATA, SSS_TEXTURES } from "./utils/constants.js";
+import { PLANETS_DATA, SSS_TEXTURES, SUN_DATA } from "./utils/constants.js";
+import { parseSmallBodiesData } from "../APIRequests/preprocessor.js";
+import { fetchSbdbApi } from "../APIRequests/apis/event.js";
+
+async function getNeo() {
+  const sbdbResponse = await fetchSbdbApi(20);
+  return parseSmallBodiesData(sbdbResponse.data);
+}
 
 //TODO: add camera movement
 class EducationScene extends EmptyScene {
@@ -27,14 +34,13 @@ class EducationScene extends EmptyScene {
       this.orbitingObjects.push(obj);
     });
 
+    // 調用 getNeo 並存儲結果
+    this.neoObjects = [];
+    this.initNeoObjects();
+
     // group by category
     this.availableCategories = {};
-    this.orbitingObjects.forEach((obj) => {
-      if (!this.availableCategories[obj.category]) {
-        this.availableCategories[obj.category] = [];
-      }
-      this.availableCategories[obj.category].push(obj.name);
-    });
+    this._updateCategories();
 
     // all 3D objects in scene
     this.objects3d = [];
@@ -54,9 +60,40 @@ class EducationScene extends EmptyScene {
     this.loop.played = 1; // 是否計算下一幀差異
   }
 
+  _updateCategories() {
+    this.availableCategories = {}; // 重置類別
+    this.orbitingObjects.forEach((obj) => {
+      if (!this.availableCategories[obj.category]) {
+        this.availableCategories[obj.category] = [];
+      }
+      this.availableCategories[obj.category].push(obj.name);
+    });
+
+    // 添加這行
+    this.onCategoriesUpdated(this.availableCategories);
+  }
+
+  onCategoriesUpdated(categories) {
+    // 這個方法將在 Vue 組件中被覆蓋
+  }
+
+  async initNeoObjects() {
+    try {
+      const neoData = await getNeo();
+      neoData.forEach((data) => {
+        const obj = new CelestialBody(this.scene, data, SSS_TEXTURES);
+        this.orbitingObjects.push(obj);
+      });
+      this._updateCategories();
+    } catch (error) {
+      console.error("Error fetching NEO data:", error);
+    }
+  }
+
   addCelestialBody(bodyName) {
     const body = this.orbitingObjects.find((obj) => obj.name === bodyName);
     if (body) {
+      body.trace = [];
       this.scene.add(body.container);
       this.loop.updatables.push(body.container);
       this.objects3d.push(body.container);

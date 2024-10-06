@@ -42,12 +42,14 @@ const data = computed(() => {
   result.datasets.sort((a, b) => a.data[0].y - b.data[0].y);
 
   if (showTheoryLine.value) {
+    const firstPoint = result.datasets[0].data[0];
+    const lastPoint = result.datasets[result.datasets.length - 1].data[0];
     result.datasets.push({
       type: "line",
       label: "理論線",
       data: [
-        result.datasets[0].data[0],
-        result.datasets[result.datasets.length - 1].data[0],
+        { x: firstPoint.x, y: firstPoint.y, text: "m≈0.6667" },
+        { x: lastPoint.x, y: lastPoint.y },
       ],
       backgroundColor: "#0000F0",
       borderColor: "#0000F0",
@@ -98,12 +100,27 @@ const scatterDataLabels = {
       const meta = chart.getDatasetMeta(i);
       if (meta.type === "scatter") {
         meta.data.forEach((element, index) => {
-          const { x, y } = element.tooltipPosition();
-          ctx.fillStyle = dataset.borderColor;
-          ctx.font = "12px Arial";
-          ctx.textAlign = "center";
-          ctx.fillText(dataset.data[index].text, x, y - 10);
+          if (dataset.data[index].text) {
+            const { x, y } = element.tooltipPosition();
+            ctx.fillStyle = dataset.borderColor;
+            ctx.font = "12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(dataset.data[index].text, x, y - 10);
+          }
         });
+      } else if (meta.type === "line") {
+        if (dataset.data[0].text && meta.data[0].x != meta.data[1].x) {
+          const startPoint = meta.data[0];
+          const endPoint = meta.data[meta.data.length - 1];
+          const midX = (startPoint.x + endPoint.x) / 2;
+          const midY = (startPoint.y + endPoint.y) / 2;
+
+          ctx.fillStyle = dataset.borderColor;
+          ctx.font = "18px Arial";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          ctx.fillText(dataset.data[0].text, midX + 20, midY);
+        }
       }
     });
   },
