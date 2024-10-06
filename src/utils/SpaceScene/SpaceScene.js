@@ -1,60 +1,64 @@
-import { createLights } from "./components/lights.js";
-import { Resizer } from "./core/Resizer.js";
-import {
-  createBackgroundSphere,
-  createSun,
-  createOrbitingObject,
-} from "./components/objects.js";
-
-import { planets_const } from "@/utils/SpaceScene/utils/smorrery_const.js";
 import { EmptyScene } from "./EmptyScene.js";
+import { createLightSource } from "./components/light.js";
+import { createBackground, CelestialBody } from "./components/objects.js";
+import { SUN_DATA, PLANETS_DATA, SSS_TEXTURES } from "./utils/constants.js";
+import { Resizer } from "./core/Resizer.js";
+
+const CelestialObjects = []; // FOR UNIFIED MANAGEMENT  // TO DO: INSERT CELESTIAL OBJECT DATA
 
 class SpaceScene extends EmptyScene {
   constructor(container) {
     super(container);
 
-    const { ambientLight, sunLight } = createLights();
-    // 背景
-    const backgroundSphere = createBackgroundSphere();
-    this.scene.add(ambientLight, backgroundSphere);
-    // 物件
-    const sun = createSun();
+    // Stage props for the scene
+    const backgroundSphere = createBackground();
+    const sunLight = createLightSource('sun');
+    const backgroundLight = createLightSource('ambient');
+    
+    [ sunLight, backgroundLight, backgroundSphere ].forEach(stageProp => {
+      this.scene.add(stageProp);
+    })
 
-    this.smallBodies = [];
-    // 行星
-    this.orbitingObjects = [...planets_const, ...this.smallBodies];
-    this.orbitingObjects.forEach((obj) => {
-      obj.container = createOrbitingObject(obj);
-      this.loop.updatables.push(obj.container);
-      this.scene.add(obj.container);
-    });
-    console.log(this.orbitingObjects);
+    // Celestial objects
+    const sun = new CelestialBody(this.scene, SUN_DATA, SSS_TEXTURES);
+    this.scene.add(sun.container);
+    console.log('Created', sun.name);
 
-    this.scene.add(sun);
-    this.scene.add(ambientLight);
-    this.scene.add(sunLight);
+    this.generateObjects(PLANETS_DATA);
 
-    const resizer = new Resizer(container, this.camera, this.renderer);
-
+    // const resizer = new Resizer(container, this.camera, this.renderer);
   }
 
+  generateObjects(dataset) {
+    return dataset.forEach((data) => {
+      const body = new CelestialBody(this.scene, data, SSS_TEXTURES);
+      console.log('Created', body.name);
+      this.scene.add(body.container);
+      this.loop.updatables.push(body.container);
+
+      CelestialObjects.push(body);
+    });
+  };
+
   clearTrace() {
-    this.orbitingObjects.forEach(obj => {
-      obj.trace = []
-    })
+    CelestialObjects.forEach(body => {
+      if (body.name.toUpperCase() !== 'SUN') {
+        body.trace = [];  
+      }
+    });
   }
 
   // 天體軌跡記錄啟動
   set OrbitingRecordTrace (flag) {
     const st = (flag === true)? true : false;
-    this.orbitingObjects.forEach(obj => {
-      obj.isTrace = st
+    CelestialObjects.forEach(body => {
+      // console.log(body.name, body.isTraced, st);  // for debug only  // TO DO: INSERT CELESTIAL OBJECT DATA
+      body.isTraced = st
       if(!st) {
-        obj.trace = []
+        body.trace = []
       }
     })
   }
-
 }
 
 export { SpaceScene };
