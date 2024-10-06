@@ -133,7 +133,7 @@ export class Kepler1stLaw extends EmptyTopic {
         step: 1,
       },
       ma: {
-        label: "Mean Anomaly \nat epoch (deg)",
+        label: "True Anomaly (deg)",
         min: 0,
         max: 360,
         step: 1,

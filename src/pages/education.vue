@@ -395,7 +395,7 @@ const changeTopic = (index) => {
   padding: 20px;
   overflow-y: auto;
   border-right: 1px solid #ccc;
-  padding-top: 120px;
+  margin-top: 120px;
 }
 
 .scene-panel {
