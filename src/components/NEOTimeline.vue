@@ -30,20 +30,23 @@
         </v-card>
       </div>
 
-      <div class="event-details d-flex flex-wrap" style="flex: 3; margin-left: 20px;">
-        <div class="event-card" style="flex: 1; margin-right: 20px;">
+      <div class="event-details d-flex flex-wrap" style="flex: 5; margin: 30px;">
+        <div class="event-card d-flex flex-column" style="flex: 3; height: 100%; max-height: 100%;">
           <h2>Distance Comparison</h2>
-            <v-container class="d-flex flex-wrap">
-              <v-row>
-                <canvas ref="comparisonCanvas1"></canvas>
-              </v-row>
-              <v-row>
-                <canvas ref="comparisonCanvas2"></canvas>
-              </v-row>
-              <v-row>
-                <canvas ref="comparisonCanvas3"></canvas>
-              </v-row>
-            </v-container>
+          <div class="canvas-container" style="flex-grow: 1; overflow: hidden;">
+            <div>
+              <h4>Earth to Moon ( &#x2248 0.00257 AU )</h4>
+              <canvas class="comparison-canvas" ref="comparisonCanvas1" width="600" height="100"></canvas>
+            </div>
+            <div>
+              <h4>Earth to NEO</h4>
+              <canvas class="comparison-canvas" ref="comparisonCanvas2" width="600" height="100"></canvas>
+            </div>
+            <div>
+              <h4>1,000,000 km</h4>
+              <canvas class="comparison-canvas" ref="comparisonCanvas3" width="600" height="100"></canvas>
+            </div>
+          </div>
         </div>
         <div class="event-card" style="flex: 2;">
           <div id="event-content">
@@ -129,6 +132,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { fetchCADApi } from '@/utils/APIRequests/apis/event.js';
+import { log } from 'three/webgpu';
 const searchQuery = ref('');
 const neoObjects = ref([]);
 const neoDataByDate = ref({});
@@ -148,7 +152,7 @@ let initialTimelineOffset = 0;
 const comparisonCanvas1 = ref(null);
 const comparisonCanvas2 = ref(null);
 const comparisonCanvas3 = ref(null);
-const comparisonCanvas4 = ref(null);
+// const comparisonCanvas4 = ref(null);
 
 
 
@@ -322,7 +326,7 @@ const selectEvent = (item) => {
   const event = neoObjects.value.find((selectedEvent) => selectedEvent.des === item.name);
   if (event) {
     selectedEvent.value = event;
-    drawEventComparison(event.dist_min, event.dist_max);
+    drawEventComparison(event.dist);
     console.log('Selected event:', selectedEvent.value);
   }
 };
@@ -402,7 +406,7 @@ const onDateSelect = (date) => {
 // 當組件掛載時取得資料並初始化時間軸
 onMounted(async () => {
   try {
-    const NEO_data = await fetchCADApi('2024-10-10', '2024-10-30', 0.2);
+    const NEO_data = await fetchCADApi('2023-10-10', '2024-10-30', 0.05);
     processData(NEO_data.data);
     console.log('NEO data:', NEO_data.data);
     generateTimeline();
@@ -424,84 +428,65 @@ const openLink = (url) => {
 };
 
 const formatFieldTime = (timeString) => {
-let days = 0;
-    let hours = 0;
-    let minutes = 0;
-    
-    if (timeString.includes('_')) {
-        const [dayPart, hourMinutePart] = timeString.split('_');
-        days = parseInt(dayPart);
+  let days = 0;
+  let hours = 0;
+  let minutes = 0;
+  
+  if (timeString.includes('_')) {
+      const [dayPart, hourMinutePart] = timeString.split('_');
+      days = parseInt(dayPart);
 
-        const [hourPart, minutePart] = hourMinutePart.split(':');
-        hours = parseInt(hourPart);
-        minutes = parseInt(minutePart);
-    } else {
-        const [hourPart, minutePart] = timeString.split(':');
-        hours = parseInt(hourPart);
-        minutes = parseInt(minutePart);
-    }
+      const [hourPart, minutePart] = hourMinutePart.split(':');
+      hours = parseInt(hourPart);
+      minutes = parseInt(minutePart);
+  } else {
+      const [hourPart, minutePart] = timeString.split(':');
+      hours = parseInt(hourPart);
+      minutes = parseInt(minutePart);
+  }
 
-    // 返回格式化字符串
-    return `${days} d ${hours} h ${minutes} m`;
+  // 返回格式化字符串
+  return `${days} d ${hours} h ${minutes} m`;
 };
 
-const drawEventComparison = (distance1, distance2) => {
+const km = 1000000/149597871
+const drawEventComparison = (distance) => {
+  // 1 AU = 149597871 km
+  const divideBy = 0.05;
+
   const canvas1 = comparisonCanvas1.value;
   const ctx1 = canvas1.getContext('2d');
-  drawComparisonLine(ctx1, 'Earth to Moon', 0.00257*1000);
+  drawComparisonLine(ctx1,  0.00257/divideBy);
 
   const canvas2 = comparisonCanvas2.value;
   const ctx2 = canvas2.getContext('2d');
-  drawComparisonLine(ctx2, 'Earth to NEO (min-max)', distance1*1000, distance2*1000);
+  drawComparisonLine(ctx2, distance/divideBy);
 
+  // const canvas3 = comparisonCanvas3.value;
+  // const ctx3 = canvas3.getContext('2d');
+  // drawComparisonLine(ctx3, 'Earth to Sun (1AU)',  1);
   const canvas3 = comparisonCanvas3.value;
   const ctx3 = canvas3.getContext('2d');
-  // drawComparisonLine(ctx3, 'Compare with 1000 km', 1000 / 149597870.7*1000);
-  drawComparisonLine(ctx3, 'Earth to Sun (1AU)', 1*1000);
+  drawComparisonLine(ctx3, km/divideBy);
 }
 
-const drawComparisonLine = (ctx, label, ...lengths) => {
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // 清除画布
-  ctx.font = '16px Arial';
 
-  // 设置绘图的初始位置
-  const startX = 50;
+const drawComparisonLine = (ctx, length) => {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  const startX = 5;
   const startY = 40;
-  const offsetY = 20;
+  const offsetY = 30;
+  const scale = ctx.canvas.width - 10
 
-  if (lengths.length === 1) {
-    const length1 = lengths[0];
-
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(startX + length1, startY);
-    ctx.strokeStyle = 'blue';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.fillText(label, startX, startY - 10);
-
-  } else if (lengths.length === 2) {
-    const length1 = lengths[0];
-    const length2 = lengths[1];
-
-    ctx.beginPath();
-    ctx.moveTo(startX, startY);
-    ctx.lineTo(startX + length1, startY);
-    ctx.strokeStyle = 'blue';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.fillText(label, startX, startY - 10);
-
-    ctx.beginPath();
-    ctx.moveTo(startX, startY + offsetY);
-    ctx.lineTo(startX + length2, startY + offsetY);
-    ctx.strokeStyle = 'red'; // 为了区分，改变颜色
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-  } else {
-    console.error('Length must have either one or two values');
-  }
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(startX + length*scale, startY);
+  ctx.strokeStyle = '#fca7a7';
+  ctx.lineWidth = 5;
+  ctx.stroke();
+  ctx.fillStyle = "white";
+  // ctx.fillText(label, startX, startY - 20);
 };
 
 
@@ -590,7 +575,7 @@ const drawComparisonLine = (ctx, label, ...lengths) => {
   display: flex;
   justify-content: space-between;
   height: 550px;
-  gap: 30px;
+  gap: 20px;
 }
 
 .event-card {
@@ -601,6 +586,20 @@ const drawComparisonLine = (ctx, label, ...lengths) => {
   padding: 30px 40px;
   border-radius: 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-container {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  height: 100%;
+}
+
+.comparison-canvas {
+  flex: 1;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .scrollable {
