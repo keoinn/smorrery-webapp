@@ -1,8 +1,10 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch, computed, reactive} from "vue";
+import { Vector3 } from "three";
 import { SpaceScene } from "@/utils/SpaceScene/SpaceScene.js";
 import { fetchCadApi, fetchSbdbApi } from '@/utils/APIRequests/apis/event.js';
 import { parseSmallBodiesData } from "@/utils/APIRequests/preprocessor.js";
+import { J2000, J1970 } from "@/utils/SpaceScene/utils/constants.js";
 import backgroundmusic from '@/assets/backgroundmusic.wav'
 
 const NEO_AMOUNT = 10;
@@ -12,12 +14,12 @@ const CAD_MAX_DIST = '0.05';
 
 let space_scene;
 const target = ref();
-
-const scene_st = ref(false);  // Space Scene active or not
-const control_st = ref(false);  // Control Bar active or not
-const forward_st = ref(true);  // Animation forward or backward
 const timeSpeed = ref(1.0);  // Animation speed
+const isRunning = ref(false);  // Space Scene active or not
+const isPlaying = ref(false);  // Control Bar active or not
+const isForward = ref(true);  // Animation forward or backward
 const isTraced = ref(false);  // Orbit tracing enable or not
+const isLabled = ref(false);  // Lable visible or not
 
 //currentDate
 const currentDate = ref(946728000000)
@@ -30,12 +32,10 @@ let cadData;  // from CAD API response
 const backgroundMusic = ref(false);
 const isMuted = ref(true);
 
-
 // 畫布啟動關閉 -> 畫面渲染
-const controlStatusScene = () => {
-  scene_st.value = !scene_st.value;
-
-  if (scene_st.value) {
+const toggleSceneStatus = () => {
+  isRunning.value = !isRunning.value;
+  if (isRunning.value) {
     space_scene.start();
     backgroundMusic.value.play();
   } else {
@@ -43,19 +43,18 @@ const controlStatusScene = () => {
   } 
 };
 
-// Control Bar Action
-const palyingStatuChange = () => {
-  control_st.value = !control_st.value;
-  if (control_st.value) {
+const togglePlayPause = () => {
+  isPlaying.value = !isPlaying.value;
+  if (isPlaying.value) {
     space_scene.loop.played = 1;
   } else {
     space_scene.loop.played = 0;
   }
 };
 
-const forwardControlChange = () => {
-  forward_st.value = !forward_st.value;
-  if (forward_st.value) {
+const toggleForwardBackard = () => {
+  isForward.value = !isForward.value;
+  if (isForward.value) {
     space_scene.loop.timeDirect = 1;
   } else {
     space_scene.loop.timeDirect = 0;
@@ -63,25 +62,29 @@ const forwardControlChange = () => {
   space_scene.clearTrace();
 };
 
-const changeisTracedStatus = () => {
+const toggleTraces = () => {
   isTraced.value = !isTraced.value;
   space_scene.OrbitingRecordTrace = isTraced.value;
   console.log(`Trace status = ${isTraced.value}`); // <--- TEST
 };
 
-const dateShift = (val) => {
+// Toggle visibility of labels
+function toggleLabels() {
+  isLabled.value = !isLabled.value;
+  space_scene.toggleLabels(isLabled.value);
+}
+
+const shiftDateAndClearTraces = (val) => {
   space_scene.loop.shiftDate = val
-  isTraced.value = false
+  isTraced.value = false;
   space_scene.OrbitingRecordTrace = isTraced.value;
   space_scene.clearTrace();
-  
 }
 
 watch(timeSpeed, (val) => {
-  // console.log(`Speed = ${val}x`); // TEST: log the new speed value
+  // console.log(`Speed = ${val}x`); 
   space_scene.loop.timeScaleRate = val;
 });
-
 
 const showFixedSpeedVal = (val) => {
   return parseFloat(val);
@@ -96,13 +99,35 @@ const showDateString = (val) => {
 }
 
 const showJDText = (val) => {
-  return ((val / 86400000) + 2440587.5).toFixed(2);
+  return ((val / 86400000) + J1970).toFixed(2);
 }
 
 const toggleMute = () => {
   isMuted.value = !isMuted.value;
   backgroundMusic.value.muted = isMuted.value;
 };
+
+// Change playback speed with keyboard
+function changePlaybackSpeed(deltaV) {
+  const newSpeed = Math.max(0.1, Math.min(timeSpeed.value + deltaV, 10)); // Limit between 0.1x and 10x speed
+  timeSpeed.value = Math.round(newSpeed * 100) / 100; // Round to 2 decimal place
+  space_scene.loop.timeScale = timeSpeed.value;  // Update scene's playback speed
+  console.log(`Playback speed: ${timeSpeed.value}x`);  // For debugging
+}
+
+// Jump to today's date
+function jumpToToday() {
+  const today = new Date();  // Get the current date
+  shiftDateAndClearTraces(today);
+  console.log(`Jumped to today's date: ${today}`);
+}
+
+// Jump to J2000 (January 1, 2000)
+function jumpToJ2000() {
+  const J2000_DATE = new Date(Date.UTC(2000, 0, 1, 12, 0, 0));  // J2000 date
+  shiftDateAndClearTraces(J2000_DATE);
+  console.log(`Jumped to J2000 date: ${j2000}`);
+}
 
 onMounted(async () => {
   try {
@@ -144,7 +169,7 @@ onMounted(async () => {
     backgroundMusic.value.muted = isMuted.value;
 
     // Add keyboard event listener for controlling labels and camera movement
-    window.addEventListener('keydown', space_scene.addKeyboardControls());
+    window.addEventListener('keydown', handleKeydown);
 
   } catch (error) {
     console.error('Error setting up scene or rendering:', error);
@@ -153,10 +178,62 @@ onMounted(async () => {
 
 // Cleanup when the component is unmounted
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', space_scene.addKeyboardControls());  // Cleanup keyboard listener
+  window.removeEventListener('keydown', handleKeydown);  // Cleanup keyboard listener
   space_scene.stop();  // Stop the scene rendering
 });
 
+// Handle keyboard input
+function handleKeydown(event) {
+  switch (event.key.toUpperCase()) {
+    case 'W':  // Move camera closer to center
+      space_scene.camera.getWorldDirection(new Vector3());
+      space_scene.camera.position.addScaledVector(space_scene.camera.getWorldDirection(), 2);
+      break;
+    case 'S':  // Move camera away from center
+      space_scene.camera.getWorldDirection(new Vector3());
+      space_scene.camera.position.addScaledVector(space_scene.camera.getWorldDirection(), -2);
+      break;
+    case 'A':  // Rotate camera counter-clockwise
+      space_scene.camera.rotateY(2 * Math.PI / 180);  // Rotate 15 degrees
+      break;
+    case 'D':  // Rotate camera clockwise
+      space_scene.camera.rotateY(-2 * Math.PI / 180);  // Rotate -15 degrees
+      break;
+    case 'L':  // Toggle labels
+      toggleLabels();
+      break;
+    case ' ':  // Toggle play/pause with spacebar
+      togglePlayPause();
+      break;
+    case 'M':
+      toggleMute();
+      break;
+    case 'T':
+      toggleTraces();
+      break;
+    case 'ENTER':
+      toggleSceneStatus();
+      break;
+    case 'J':  // Decrease playback speed
+      changePlaybackSpeed(-0.1);
+      break;
+    case 'K':  // Increase playback speed
+      changePlaybackSpeed(0.1);
+      break;
+    case 'R':  // Toggle Forward/Backard
+      toggleForwardBackard();
+      break;
+    case 'H': 
+      jumpToToday();
+      break;
+    case 'G': 
+      jumpToJ2000();
+      break;
+    case 'M': 
+      toggleMute();
+      break;
+  }
+}
 
 </script>
 
@@ -168,48 +245,56 @@ onBeforeUnmount(() => {
     <div id="timeControl">
       <v-btn
         class="video-btn text-none"
-        @click="controlStatusScene"
-        :text="scene_st === true ? `Stop` : `Run`"
+        @click="toggleSceneStatus"
+        :text="isRunning === true ? `Stop` : `Run`"
         size="small"
       />
       <v-btn
         class="video-btn"
-        :disabled="!scene_st"
-        :icon="control_st === true ? `mdi-pause` : `mdi-play`"
-        @click="palyingStatuChange"
+        :disabled="!isRunning"
+        :icon="isPlaying === true ? `mdi-pause` : `mdi-play`"
+        @click="togglePlayPause"
         size="small"
       />
       <v-btn
         class="video-btn"
-        :disabled="!scene_st"
-        :icon="forward_st === true ? `mdi-skip-backward` : `mdi-skip-forward`"
-        @click="forwardControlChange"
+        :disabled="!isRunning"
+        :icon="isForward === true ? `mdi-skip-backward` : `mdi-skip-forward`"
+        @click="toggleForwardBackard"
         size="small"
       />
-
       <v-btn
         class="video-btn text-none"
-        :disabled="!scene_st || !control_st"
-        :prepend-icon="isTraced === true ? `mdi-stop-circle` : `mdi-record`"
-        @click="changeisTracedStatus"
+        :disabled="!isRunning || !isPlaying"
+        :prepend-icon="isTraced === true ? `mdi-checkbox-marked` : `mdi-checkbox-blank-outline`"
+        @click="toggleTraces"
         text="Trace"
         size="small"
       />
 
       <v-btn
         class="video-btn text-none"
-        :disabled="!scene_st"
+        :disabled="!isRunning || !isPlaying"
+        :prepend-icon="isLabled === true ? `mdi-checkbox-marked` : `mdi-checkbox-blank-outline`"
+        @click="toggleLabels"
+        text="Label"
+        size="small"
+      />
+
+      <!-- <v-btn
+        class="video-btn text-none"
+        :disabled="!isRunning"
         text="J2000"
         size="small"
-        @click="dateShift(946728000000)"
-      />
+        @click="jumpToJ2000"
+      /> -->
 
       <v-btn
         class="video-btn text-none"
-        :disabled="!scene_st"
+        :disabled="!isRunning"
         text="Today"
         size="small"
-        @click = "dateShift(new Date().getTime())"
+        @click = "jumpToToday"
       />
 
       <div class="speedControl">
@@ -221,13 +306,13 @@ onBeforeUnmount(() => {
           min="0.1"
           max="10"
           step="0.01"
-          :disabled="!scene_st"
+          :disabled="!isRunning"
         />
         <span id="speedValue">{{ showFixedSpeedVal(timeSpeed) }}x</span>
       </div>
 
       <span class="info-text">{{ showDateString(currentDate) }}</span>
-      <span class="info-text"> JD {{ showJDText(currentDate) }}</span>
+      <!-- <span class="info-text"> JD {{ showJDText(currentDate) }}</span> -->
 
       <v-btn
         class="video-btn"

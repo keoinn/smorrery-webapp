@@ -1,3 +1,4 @@
+import { Vector3 } from "three";
 import { EmptyScene } from "./EmptyScene.js";
 import { createLightSource } from "./components/light.js";
 import { createBackground, CelestialBody } from "./components/objects.js";
@@ -8,6 +9,8 @@ import { Resizer } from "./core/Resizer.js";
 class SpaceScene extends EmptyScene {
   constructor(container) {
     super(container);
+
+    console.log(this.CelestialObjects)
 
     // Stage props for the scene
     const backgroundSphere = createBackground();
@@ -39,9 +42,15 @@ class SpaceScene extends EmptyScene {
 
   clearTrace() {
     this.CelestialObjects.forEach(body => {
-      if (body.name.toUpperCase() !== 'SUN') {
-        body.trace = [];  
-      }
+      body.trace = [];
+    });
+  }
+
+  // Toggle visibility of celestial body labels
+  toggleLabels() {
+    this.CelestialObjects.forEach(body => {
+      body.label.visible = !body.label.visible;
+      this.labelRenderer.render(this.scene, this.camera);
     });
   }
 

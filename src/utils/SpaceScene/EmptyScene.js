@@ -1,4 +1,3 @@
-import { Vector3 } from "three";
 import { createScene } from "./components/scene.js";
 import { createRenderer, createLabelRenderer } from "./core/renderer.js";
 import { createCamera } from "./components/camera.js";
@@ -41,47 +40,6 @@ class EmptyScene {
     const controls = createControls(this.camera, this.labelRenderer.domElement);
     this.loop.updatables.push(controls);
 
-    // Add event listener for keyboard input
-    this.addKeyboardControls();
-  }
-
-  addKeyboardControls() {
-    let cameraDirection = new Vector3();
-
-    window.addEventListener('keydown', (event) => {
-      switch (event.key.toUpperCase()) {
-        case 'ARROWUP':  // Move camera closer to center
-          this.camera.getWorldDirection(cameraDirection);
-          this.camera.position.addScaledVector(cameraDirection, 2);
-          break;
-        case 'ARROWDOWN':  // Move camera away from center
-          this.camera.getWorldDirection(cameraDirection);
-          this.camera.position.addScaledVector(cameraDirection, -2);
-          break;
-        case 'ARROWLEFT':  // Move camera counter-clockwise
-          this.camera.rotateY(5 * Math.PI / 180); 
-          break;
-        case 'ARROWRIGHT':  // Move camera clockwise
-          this.camera.rotateY(-5 * Math.PI / 180);
-          break;
-        case 'L':
-          console.log('Toggle labels');
-          this.toggleLabels();
-          break;
-        case ' ':  // Toggle Play/Pause
-          this.isPlayed = !this.isPlayed;
-          if (this.isPlayed) {
-            this.start();  // Resume animation
-          } else {
-            this.stop();  // Pause animation
-          }
-          break;
-        case 'R':  // Toggle Forward/Backward 
-          this.loop.timeDirection = -this.loop.timeDirection;
-          this.start();  // Start animation
-          break;
-      }
-    });
   }
 
   // Manual control of single-frame rendering of the scene; temporarily unused
@@ -96,14 +54,6 @@ class EmptyScene {
 
   stop() {
     this.loop.stop();
-  }
-
-  // Toggle visibility of celestial body labels
-  toggleLabels() {
-    this.CelestialObjects.forEach(body => {
-      body.label.visible = !body.label.visible;
-      this.labelRenderer.render(this.scene, this.camera);
-    });
   }
 }
 
