@@ -401,6 +401,7 @@ const onDateSelect = (date) => {
   currentDate.value = date;
   selectedDate.value = date;
 
+  generateTimeline();
   scrollToCentralDate(date);
   updateEventList();
 };
