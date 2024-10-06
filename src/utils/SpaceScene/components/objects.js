@@ -110,9 +110,9 @@ class CelestialBody {
    * It also handles the creation of orbital elements and visuals for artificial objects and planets.
    * 
    * @param {Object} data - The data object containing properties like name, radius, and orbital elements.
-   * @param {Object} [texturePack=null] - Optional texture paths for mapping textures to the celestial body.
+   * @param {Object} [texturePack=SSS_TEXTURES] - Optional texture paths for mapping textures to the celestial body.
    */
-  constructor(scene, data, texturePack = null) {
+  constructor(scene, data, texturePack = SSS_TEXTURES) {
     this.scene = scene;
     this.name = data.name || 'Unnamed';  // The name of the celestial body, default is 'Unnamed'
     this.radius = data.radius || 1;  // The radius of the celestial body, default is 1

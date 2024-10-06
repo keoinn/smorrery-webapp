@@ -9,12 +9,17 @@
   },
   "dependencies": {
     "@mdi/font": "7.4.47",
+    "@tweakpane/plugin-essentials": "^0.2.1",
     "@vueuse/core": "^11.1.0",
+    "chart.js": "^4.4.4",
     "axios": "^1.7.7",
     "core-js": "^3.37.1",
     "roboto-fontface": "*",
     "three": "^0.128.0",
+    "tweakpane": "^4.0.4",
+    "v-tweakpane": "^0.3.2",
     "vue": "^3.4.31",
+    "vue-chartjs": "^5.3.1",
     "vuetify": "^3.6.11"
   },
   "devDependencies": {
