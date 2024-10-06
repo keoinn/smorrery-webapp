@@ -15,7 +15,7 @@ The system is divided into five key modules:
 5. **Tour Module:** Enables virtual space exploration, allowing users to observe planetary surfaces and famous celestial landmarks like Mars' Valles Marineris. This application offers an engaging platform for educational and exploratory purposes, appealing to students, educators, and space enthusiasts.
 
 ## Project Demo
-[https://keoinn.github.io/gaia-room](https://ssd-api.jpl.nasa.gov/doc/cad.html)
+[https://keoinn.github.io/gaia-room](https://keoinn.github.io/gaia-room)
 
 ## Qiuck Start
 ```sh
