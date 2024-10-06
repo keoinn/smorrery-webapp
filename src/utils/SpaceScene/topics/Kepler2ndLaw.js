@@ -11,7 +11,7 @@ import {
 } from "three";
 import { DoubleSide } from "three";
 import { calcYearSinceJ2000 } from "../utils/calculator";
-import { ref } from "vue"; // 確保導入 ref
+import { ref } from "vue";
 
 const PHASE_NUMBER = 8;
 

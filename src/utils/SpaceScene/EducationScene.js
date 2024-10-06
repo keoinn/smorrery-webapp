@@ -36,7 +36,6 @@ class EducationScene extends EmptyScene {
       obj.label.visible = false;
     });
 
-    // 調用 getNeo 並存儲結果
     this.neoObjects = [];
     this.initNeoObjects();
 
@@ -63,7 +62,7 @@ class EducationScene extends EmptyScene {
   }
 
   _updateCategories() {
-    this.availableCategories = {}; // 重置類別
+    this.availableCategories = {};
     this.orbitingObjects.forEach((obj) => {
       if (!this.availableCategories[obj.category]) {
         this.availableCategories[obj.category] = [];
