@@ -1,13 +1,15 @@
 <!-- @/components/NEOIntroduction.vue -->`
 <template>
-  <div class="container">
+  <div class="container" style="max-height: 70vh; margin-top: 10px;">
     <div class="text-center">
       <!-- <h2>NEO Lookup</h2> -->
     </div>
     <div class="container d-flex flex-wrap justify-center event-container">
       <div class="event-selector" style="flex: 1; ">
-        <h3>Select an Event</h3>
-        <v-card class="mx-auto" max-width="300">
+        <div class = "event-selector-header" title="">
+          <h2>Select an Event</h2>
+        </div>
+        <v-card class="mx-auto" margin="10px" max-width="300">
           <v-list>
             <template v-if="eventList.length">
               <v-list-item-group v-model="selectedEvent">
@@ -30,33 +32,16 @@
         </v-card>
       </div>
 
-      <div class="event-details d-flex flex-wrap" style="flex: 5; margin: 30px;">
-        <div class="event-card d-flex flex-column" style="flex: 3; height: 100%; max-height: 100%;">
-          <h2>Distance Comparison</h2>
-          <div class="canvas-container" style="flex-grow: 1; overflow: hidden;">
-            <div>
-              <h4>Earth to Moon ( &#x2248 0.00257 AU )</h4>
-              <canvas class="comparison-canvas" ref="comparisonCanvas1" width="600" height="100"></canvas>
-            </div>
-            <div>
-              <h4>Earth to NEO</h4>
-              <canvas class="comparison-canvas" ref="comparisonCanvas2" width="600" height="100"></canvas>
-            </div>
-            <div>
-              <h4>1,000,000 km</h4>
-              <canvas class="comparison-canvas" ref="comparisonCanvas3" width="600" height="100"></canvas>
-            </div>
-          </div>
-        </div>
+      <div class="event-details d-flex flex-wrap" style="flex: 5; margin: 0px 30px;">
         <div class="event-card" style="flex: 2;">
           <div id="event-content">
               <h2>
-                {{ selectedEvent?.des  || 'No Data' }} <span class="mdi mdi-creation-outline"></span> </h2>
+                {{ selectedEvent?.des  || 'No Data' }} <span class="mdi mdi-creation-outline"></span></h2>
               <h3>{{ selectedEvent?.cd || 'No Data' }}</h3>
           </div>
           <div id="event-table" class="scrollable">
-            <h3>Close-Approach Data</h3>
             <table v-if="selectedEvent !== null">
+                <caption><h3>Close-Approach Data</h3></caption>
                 <thead>
                   <th>Field</th>
                   <th>Value</th>
@@ -67,7 +52,10 @@
                     <th>{{ field }}</th>
                     <td>
                       <span v-if="field === 't_sigma_f'">
-                          {{ formatFieldTime(selectedEvent[field]) }} <!-- 调用 formatTime 方法 -->
+                          {{ formatFieldTime(selectedEvent[field]) }}
+                      </span>
+                      <span v-else-if="field === 'orbit_id'">
+                        {{ selectedEvent[field] }}
                       </span>
                       <span v-else>
                           {{ parseFloat(selectedEvent[field]).toFixed(6) }}
@@ -79,15 +67,38 @@
             </table>
             <p v-else>No data for this event.</p>
           </div>
-          <div v-if="selectedEvent?.links && selectedEvent?.links.length > 0" id="event-links">
-            <button
-              v-for="link in selectedEvent.links"
-              :key="link.text"
-              class="link-button"
-              @click="openLink(link.url)"
-            >
-              {{ link.text }}
-            </button>
+        </div>
+        <div class="d-flex flex-column" style="flex: 3; gap: 10px;; height: 100%; max-height: 100%;">
+          <div class="event-card d-flex flex-row" style="flex: 4;">
+            <div class="comparison-container" style="flex-grow: 1; overflow: hidden;">
+              <h2 class="text-center">Distance Comparison</h2>
+              <div class="canvas-container">
+                <div>
+                  <h4 style="font-size: 20px"><span class="mdi mdi-calendar-star-four-points"></span>&nbsp;&nbsp;Earth to NEO</h4>
+                  <canvas class="comparison-canvas" ref="comparisonCanvas2" width="600" height="80"></canvas>
+                </div>
+                <div>
+                  <h4 style="font-size: 20px"><span class="mdi mdi-weather-night"></span>&nbsp;&nbsp;Earth to Moon ( &#x2248 0.00257 AU )</h4>
+                  <canvas class="comparison-canvas" ref="comparisonCanvas1" width="600" height="80"></canvas>
+                </div>
+                <div>
+                  <h4 style="font-size: 20px"><span class="mdi mdi-ruler"></span>&nbsp;&nbsp;1,000,000 km</h4>
+                  <canvas class="comparison-canvas" ref="comparisonCanvas3" width="600" height="80"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex flex-row" style="flex: 1;">
+            <div v-if="selectedEvent?.links && selectedEvent?.links.length > 0" id="event-links">
+              <button
+                v-for="link in selectedEvent.links"
+                :key="link.text"
+                class="link-button"
+                @click="openLink(link.url)"
+              >
+                {{ link.text }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -147,7 +158,7 @@ const isCalendarOpen = ref(false);
 const neo = ref({});
 const timelineOffset = ref(0);
 const isDragging = ref(false); 
-let startX = 0; // 滑鼠起始位置
+let startX = 0; 
 let initialTimelineOffset = 0; 
 const comparisonCanvas1 = ref(null);
 const comparisonCanvas2 = ref(null);
@@ -168,7 +179,7 @@ const filteredTimelineDays = computed(() => {
   );
 });
 
-// 處理滑鼠滾輪滾動
+// 滑鼠滾輪滾動
 const onWheelScroll = (event) => {
   event.preventDefault();
   const delta = Math.sign(event.deltaY);
@@ -179,12 +190,12 @@ const onWheelScroll = (event) => {
 };
 
 
-// 處理搜尋輸入框變更
+// 搜尋輸入框
 const onSearch = () => {
   console.log('Search for:', searchQuery.value);
 };
 
-// 處理滑鼠拖曳開始
+// 滑鼠拖曳
 const onMouseDown = (event) => {
   isDragging.value = true;
   startX = event.clientX;
@@ -219,8 +230,6 @@ const onMouseUp = () => {
 };
 
 
-
-// 清除事件監聽器（當組件卸載時）
 onBeforeUnmount(() => {
   document.removeEventListener('mousemove', onMouseMove);
   document.removeEventListener('mouseup', onMouseUp);
@@ -255,7 +264,6 @@ const units = {
   h: 'mag',
 }
 
-// 解析日期字串，格式為 'YYYY-MMM-DD'，轉換為 'YYYY-MM-DD'
 const parseDate = (dateStr) => {
   const [year, monthName, day] = dateStr.split('-');
   const month = monthMap[monthName];
@@ -276,8 +284,9 @@ const processData = (NEO_data) => {
     }
     obj.description = 'Just some NEO.';
     obj.links = [
-      { text: 'NASA NEO Database', url: 'https://cneos.jpl.nasa.gov/' },
-      { text: 'Asteroid Watch', url: 'https://www.nasa.gov/asteroid-and-comet-watch/' },
+      { text: 'Center for NEO Studies', url: 'https://cneos.jpl.nasa.gov/' },
+      { text: 'Asteroid watch', url: 'https://www.jpl.nasa.gov/asteroid-watch/' },
+      { text: 'NEO Earth Close Approaches', url: 'https://cneos.jpl.nasa.gov/ca/' }
     ];
     return obj;
   });
@@ -301,8 +310,8 @@ const processData = (NEO_data) => {
 
 const generateTimeline = () => {
   timelineDays.value = [];
-  const daysBefore = 15;
-  const daysAfter = 15;
+  const daysBefore = 30;
+  const daysAfter = 30;
 
   for (let i = -daysBefore; i <= daysAfter; i++) {
     const date = new Date(currentDate.value);
@@ -393,6 +402,7 @@ const onDateSelect = (date) => {
   currentDate.value = date;
   selectedDate.value = date;
 
+  generateTimeline();
   scrollToCentralDate(date);
   updateEventList();
 };
@@ -400,7 +410,7 @@ const onDateSelect = (date) => {
 
 onMounted(async () => {
   try {
-    const NEO_data = await fetchCADApi('2020-10-10', '2030-10-10', 0.05);
+    const NEO_data = await fetchCadApi('2020-10-10', '2030-10-10', 0.05);
     processData(NEO_data.data);
     generateTimeline();
     scrollToCentralDate(currentDate.value);
@@ -480,22 +490,22 @@ const drawEventComparison = (distance) => {
 
   const canvas1 = comparisonCanvas1.value;
   const ctx1 = canvas1.getContext('2d');
-  drawComparisonLine(ctx1,  0.00257/divideBy);
+  drawComparisonLine(ctx1,  0.00257/divideBy, 0);
 
   const canvas2 = comparisonCanvas2.value;
   const ctx2 = canvas2.getContext('2d');
-  drawComparisonLine(ctx2, distance/divideBy);
+  drawComparisonLine(ctx2, distance/divideBy, 1);
 
   // const canvas3 = comparisonCanvas3.value;
   // const ctx3 = canvas3.getContext('2d');
   // drawComparisonLine(ctx3, 'Earth to Sun (1AU)',  1);
   const canvas3 = comparisonCanvas3.value;
   const ctx3 = canvas3.getContext('2d');
-  drawComparisonLine(ctx3, km/divideBy);
+  drawComparisonLine(ctx3, km/divideBy, 0);
 }
 
 
-const drawComparisonLine = (ctx, length) => {
+const drawComparisonLine = (ctx, length, neo) => {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
   const startX = 5;
@@ -506,10 +516,14 @@ const drawComparisonLine = (ctx, length) => {
   ctx.beginPath();
   ctx.moveTo(startX, startY);
   ctx.lineTo(startX + length*scale, startY);
-  ctx.strokeStyle = '#fca7a7';
-  ctx.lineWidth = 5;
+  if (neo) {
+    ctx.strokeStyle = '#faa5a5';
+  }
+  else {
+    ctx.strokeStyle = '#acdde6';
+  }
+  ctx.lineWidth = 8;
   ctx.stroke();
-  ctx.fillStyle = "white";
   // ctx.fillText(label, startX, startY - 20);
 };
 
@@ -561,8 +575,8 @@ const drawComparisonLine = (ctx, length) => {
 
 #year-display {
         position: absolute;
-        bottom: 40px;
-        left: 120px;
+        bottom: 20px;
+        left: 110px;
         font-size: 28px;
         opacity: 0.7;
     }
@@ -571,14 +585,13 @@ const drawComparisonLine = (ctx, length) => {
 #timeline-controls {
   display: flex;
   justify-content: center;
-  margin-top: 10px;
+  margin-bottom: 20px;
   gap: 20px;
 }
 
-
 #timeline-container {
   position: relative;
-  height: 120px;
+  height: 100px;
   overflow: hidden;
 }
 
@@ -603,31 +616,40 @@ const drawComparisonLine = (ctx, length) => {
   justify-content: center;
   align-items: center;
   text-align: center;
-  font: 30px normal;
+  font: 30px;
+}
+
+.event-selector-header {
+  margin-bottom: 15px;
 }
 
 .event-details {
   display: flex;
   justify-content: space-between;
   height: 550px;
-  gap: 20px;
+  gap: 30px;
 }
 
 .event-card {
   flex: 1;
-  min-width: 300px;
+  min-width: 200px;
   height: 100%;
-  background: rgba(68, 68, 68, 0.5);
+  background: rgba(59, 59, 59, 0.5);
   padding: 30px 40px;
   border-radius: 20px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.canvas-container {
+.comparison-container {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
   height: 100%;
+}
+
+.canvas-container {
+  margin-top: 40px;
+  color: #bdbdbd;
 }
 
 .comparison-canvas {
@@ -638,7 +660,7 @@ const drawComparisonLine = (ctx, length) => {
 }
 
 .scrollable {
-    max-height: 70%; /* Adjust height as needed */
+    max-height: 82%; /* Adjust height as needed */
     overflow-y: auto; /* Enable vertical scrolling */
     scrollbar-width: thin; /* For Firefox */
     scrollbar-color: gray transparent; /* For Firefox */
@@ -664,12 +686,16 @@ const drawComparisonLine = (ctx, length) => {
 }
 
 #event-content {
-  font: 20px blod;
+  font: 20px;
   line-height: 1.8;
 }
 
-#event-content .h2 .h3{
+#event-content .h2{
   color: rgb(255, 255, 255);
+}
+
+#event-content .h3{
+  color: rgb(192, 192, 192);
 }
 
 #event-content .p{
@@ -678,9 +704,13 @@ const drawComparisonLine = (ctx, length) => {
 
 #event-table {
   line-height: 1.8;
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 20px;
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+#event-table caption {
+  color: #cfcfcf;
 }
 
 #event-table th, #event-table td {
@@ -697,25 +727,16 @@ const drawComparisonLine = (ctx, length) => {
   padding: 10px 15px;
   margin: 5px;
   border: none;
-  background-color: #8b8b8b; /* Bootstrap primary color */
+  background-color: #757575; /* Bootstrap primary color */
   color: white;
   cursor: pointer;
-  border-radius: 5px;
-  font-size: 16px;
+  border-radius: 10px;
+  font-size: 12px;
 }
 
 .link-button:hover {
-  background-color: #0056b3; /* Darker shade for hover effect */
+  background-color: #333333; /* Darker shade for hover effect */
 }
-
-#timeline-controls {
-  display: flex;
-  justify-content: center;
-  margin-top: 10px;
-  gap: 20px;
-}
-
-
 
 .timeline-button,
 #today-button {
@@ -726,6 +747,7 @@ const drawComparisonLine = (ctx, length) => {
   cursor: pointer;
   padding: 8px 15px;
   transition: all 0.3s ease;
+  border-radius: 8px;
 }
 
 .timeline-button:hover,
@@ -774,7 +796,6 @@ const drawComparisonLine = (ctx, length) => {
   padding-left: 10px;
   margin-bottom: 20px;
   font-size: 24px;
-  font-weight: bold;
 }
 
 .timeline-btn {
@@ -784,7 +805,7 @@ const drawComparisonLine = (ctx, length) => {
   text-align: center;
   align-items: center;
   background-color: transparent;
-  font: 30px bold;
+  font: 30px;
   width: 150px;
 }
 
